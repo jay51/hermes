@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
     hermes_lexer_free(hermes_lexer);
     free(runtime->references->items);
     free(runtime->references);
-    hermes_scope_free(runtime->scope);
+    //hermes_scope_free(runtime->scope);
 
     for (int i = 0; i < runtime->list_methods->size; i++)
     {
