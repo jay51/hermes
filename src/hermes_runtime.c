@@ -1541,6 +1541,9 @@ void runtime_expect_args(dynamic_list_T* in_args, int argc, int args[])
 
     for (int i = 0; i < argc; i++)
     {
+        if (args[i] == AST_ANY)
+            continue;
+
         AST_T* ast = (AST_T*) in_args->items[i];
 
         if (ast->type != args[i])

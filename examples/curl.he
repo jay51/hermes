@@ -7,7 +7,9 @@ dload("/home/ianertson/workspace/hermes-curl/libhermes_curl.so", "hcurl_easy_cle
 
 object curl = hcurl_easy_init();
 hcurl_easy_setopt(curl, hcurl_get_option("CURLOPT_URL"), "https://coelum.org");
-hcurl_easy_perform(curl);
+
+string response = hcurl_easy_perform(curl);
+
 hcurl_easy_cleanup(curl);
 
-print(curl);
+print(response);

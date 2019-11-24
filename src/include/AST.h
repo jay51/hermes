@@ -21,6 +21,7 @@ typedef struct AST_STRUCT
         AST_LIST,
         AST_BOOLEAN,
         AST_INTEGER,
+        AST_ANY,
         AST_COMPOUND,
         AST_TYPE,
         AST_BINOP,
