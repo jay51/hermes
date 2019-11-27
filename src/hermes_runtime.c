@@ -196,6 +196,7 @@ AST_T* runtime_visit(runtime_T* runtime, AST_T* node)
     switch (node->type)
     {
         case AST_OBJECT: return runtime_visit_object(runtime, node); break;
+        case AST_ENUM: return runtime_visit_enum(runtime, node); break;
         case AST_VARIABLE: return runtime_visit_variable(runtime, node); break;
         case AST_VARIABLE_DEFINITION: return runtime_visit_variable_definition(runtime, node); break;
         case AST_VARIABLE_ASSIGNMENT: return runtime_visit_variable_assignment(runtime, node); break;
@@ -307,6 +308,33 @@ AST_T* runtime_visit_variable(runtime_T* runtime, AST_T* node)
                         return object_var_def;
 
                     return runtime_visit(runtime, object_var_def->variable_value);
+                }
+            }
+        }
+    }
+    else
+    if (node->enum_children != (void*)0)
+    {
+        if (node->enum_children->size > 0)
+        {
+            for (int i = 0; i < node->enum_children->size; i++)
+            {
+                AST_T* variable = (AST_T*) node->enum_children->items[i];
+
+                if (strcmp(variable->variable_name, node->variable_name) == 0)
+                {
+                    if (variable->ast != (void*)0)
+                    {
+                        return variable->ast;
+                    }
+                    else
+                    {
+                        AST_T* int_ast = init_ast(AST_INTEGER);
+                        int_ast->int_value = i;
+                        variable->ast = (void*) int_ast;
+
+                        return (AST_T*) variable->ast;
+                    }
                 }
             }
         }
@@ -775,6 +803,11 @@ AST_T* runtime_visit_object(runtime_T* runtime, AST_T* node)
     return node;
 }
 
+AST_T* runtime_visit_enum(runtime_T* runtime, AST_T* node)
+{
+    return node;
+}
+
 AST_T* runtime_visit_list(runtime_T* runtime, AST_T* node)
 {
     node->function_definitions = runtime->list_methods;
@@ -881,6 +914,18 @@ AST_T* runtime_visit_attribute_access(runtime_T* runtime, AST_T* node)
             node->binop_right->scope = left->scope;
             node->binop_right->is_object_child = 1;
             node->object_children = left->object_children;
+            node->scope = left->scope;
+        }
+    }
+    else
+    if (left->type == AST_ENUM)
+    {
+        if (node->binop_right->type == AST_VARIABLE)
+        {
+            node->binop_right->enum_children = left->enum_children;
+            node->binop_right->scope = left->scope;
+            // node->binop_right->is_enum_child = 1;
+            node->enum_children = left->enum_children;
             node->scope = left->scope;
         }
     }

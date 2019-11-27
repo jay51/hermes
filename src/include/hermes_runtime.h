@@ -47,6 +47,8 @@ AST_T* runtime_visit_float(runtime_T* runtime, AST_T* node);
 
 AST_T* runtime_visit_object(runtime_T* runtime, AST_T* node);
 
+AST_T* runtime_visit_enum(runtime_T* runtime, AST_T* node);
+
 AST_T* runtime_visit_list(runtime_T* runtime, AST_T* node);
 
 AST_T* runtime_visit_boolean(runtime_T* runtime, AST_T* node);

@@ -28,6 +28,7 @@ AST_T* hermes_builtin_function_print(AST_T* self, dynamic_list_T* args)
             case AST_FLOAT: printf("%0.6f\n", ast_arg->float_value); break;
             case AST_BOOLEAN: printf("%d\n", ast_arg->boolean_value); break;
             case AST_OBJECT: printf("{ object }\n"); break;
+            case AST_ENUM: printf("{ enum }\n"); break;
             case AST_LIST: printf("[ list ]\n"); break;
             case AST_COMPOUND: printf("<source/>\n"); break;
         }
