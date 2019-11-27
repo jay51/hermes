@@ -9,6 +9,7 @@ const char* DATA_TYPE_INT = "int";
 const char* DATA_TYPE_FLOAT = "float";
 const char* DATA_TYPE_BOOLEAN = "bool";
 const char* DATA_TYPE_OBJECT = "object";
+const char* DATA_TYPE_ENUM = "enum";
 const char* DATA_TYPE_REFERENCE = "ref";
 const char* DATA_TYPE_LIST = "list";
 const char* DATA_TYPE_SOURCE = "source";
@@ -107,6 +108,7 @@ AST_T* hermes_parser_parse_statement(hermes_parser_T* hermes_parser, hermes_scop
                 strcmp(token_value, DATA_TYPE_FLOAT) == 0 ||
                 strcmp(token_value, DATA_TYPE_BOOLEAN) == 0 ||
                 strcmp(token_value, DATA_TYPE_OBJECT) == 0 ||
+                strcmp(token_value, DATA_TYPE_ENUM) == 0 ||
                 strcmp(token_value, DATA_TYPE_LIST) == 0 ||
                 strcmp(token_value, DATA_TYPE_SOURCE) == 0 ||
                 strcmp(token_value, DATA_TYPE_REFERENCE) == 0
@@ -347,6 +349,44 @@ AST_T* hermes_parser_parse_object(hermes_parser_T* hermes_parser, hermes_scope_T
     return ast_object;
 }
 
+AST_T* hermes_parser_parse_enum(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
+{
+    AST_T* ast_enum = init_ast(AST_ENUM);
+    ast_enum->scope = (struct hermes_scope_T*) scope;
+    ast_enum->enum_children = init_dynamic_list(sizeof(struct AST_STRUCT));
+    hermes_scope_T* new_scope = init_hermes_scope(0);
+
+    if (scope)
+        if (scope->owner)
+            new_scope->owner = scope->owner;
+
+    hermes_parser_eat(hermes_parser, TOKEN_LBRACE);
+
+    if (hermes_parser->current_token->type != TOKEN_RBRACE)
+    {
+        if (hermes_parser->current_token->type == TOKEN_ID)
+        {
+            hermes_parser_eat(hermes_parser, TOKEN_ID);
+            dynamic_list_append(ast_enum->enum_children, hermes_parser_parse_variable(hermes_parser, new_scope));
+        }
+
+        while (hermes_parser->current_token->type == TOKEN_COMMA)
+        {
+            hermes_parser_eat(hermes_parser, TOKEN_COMMA);
+
+            if (hermes_parser->current_token->type == TOKEN_ID)
+            {
+                hermes_parser_eat(hermes_parser, TOKEN_ID);
+                dynamic_list_append(ast_enum->enum_children, hermes_parser_parse_variable(hermes_parser, new_scope));
+            }
+        }
+    }
+    
+    hermes_parser_eat(hermes_parser, TOKEN_RBRACE);
+
+    return ast_enum;
+}
+
 AST_T* hermes_parser_parse_list(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     hermes_parser_eat(hermes_parser, TOKEN_LBRACKET);
@@ -452,6 +492,7 @@ AST_T* hermes_parser_parse_term(hermes_parser_T* hermes_parser, hermes_scope_T* 
         strcmp(token_value, DATA_TYPE_FLOAT) == 0 ||
         strcmp(token_value, DATA_TYPE_BOOLEAN) == 0 ||
         strcmp(token_value, DATA_TYPE_OBJECT) == 0 ||
+        strcmp(token_value, DATA_TYPE_ENUM) == 0 ||
         strcmp(token_value, DATA_TYPE_LIST) == 0 ||
         strcmp(token_value, DATA_TYPE_SOURCE) == 0 ||
         strcmp(token_value, DATA_TYPE_REFERENCE) == 0
@@ -705,7 +746,16 @@ AST_T* hermes_parser_parse_function_definition(hermes_parser_T* hermes_parser, h
         if (hermes_parser->current_token->type == TOKEN_EQUALS)
         {
             hermes_parser_eat(hermes_parser, TOKEN_EQUALS);
-            ast_variable_definition->variable_value = hermes_parser_parse_expr(hermes_parser, scope);
+
+            // Special case
+            if (strcmp(ast_type->type_value, DATA_TYPE_ENUM) == 0)
+            {
+                ast_variable_definition->variable_value = hermes_parser_parse_enum(hermes_parser, scope);
+            }
+            else
+            {
+                ast_variable_definition->variable_value = hermes_parser_parse_expr(hermes_parser, scope);
+            }
 
             /**
              * Performing all the kinds of type-checks we can possibly cover,
@@ -716,6 +766,7 @@ AST_T* hermes_parser_parse_function_definition(hermes_parser_T* hermes_parser, h
             switch(ast_variable_definition->variable_value->type)
             {
                 case AST_OBJECT: if (strcmp(ast_type->type_value, DATA_TYPE_OBJECT) != 0) hermes_parser_type_error(hermes_parser); break;
+                case AST_ENUM: if (strcmp(ast_type->type_value, DATA_TYPE_ENUM) != 0) hermes_parser_type_error(hermes_parser); break;
                 case AST_STRING: if (strcmp(ast_type->type_value, DATA_TYPE_STRING) != 0) hermes_parser_type_error(hermes_parser); break;
                 case AST_INTEGER: if (strcmp(ast_type->type_value, DATA_TYPE_INT) != 0) hermes_parser_type_error(hermes_parser); break;
                 case AST_FLOAT: if (strcmp(ast_type->type_value, DATA_TYPE_FLOAT) != 0) hermes_parser_type_error(hermes_parser); break;

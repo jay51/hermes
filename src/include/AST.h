@@ -7,6 +7,7 @@ typedef struct AST_STRUCT
 {
     enum {
         AST_OBJECT,
+        AST_ENUM,
         AST_REFERENCE,
         AST_VARIABLE,
         AST_VARIABLE_DEFINITION,
@@ -57,7 +58,9 @@ typedef struct AST_STRUCT
     dynamic_list_T* function_call_arguments;
     dynamic_list_T* function_definition_arguments;
     dynamic_list_T* object_children;
+    dynamic_list_T* enum_children;
     void* object_value;
+    void* ast;
     dynamic_list_T* list_children;
     dynamic_list_T* function_definitions;
     dynamic_list_T* composition_children;
