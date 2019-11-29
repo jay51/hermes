@@ -331,9 +331,9 @@ AST_T* runtime_visit_variable(runtime_T* runtime, AST_T* node)
                     {
                         AST_T* int_ast = init_ast(AST_INTEGER);
                         int_ast->int_value = i;
-                        variable->ast = (void*) int_ast;
+                        variable->ast = int_ast;
 
-                        return (AST_T*) variable->ast;
+                        return variable->ast;
                     }
                 }
             }
