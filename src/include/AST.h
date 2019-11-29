@@ -60,7 +60,6 @@ typedef struct AST_STRUCT
     dynamic_list_T* object_children;
     dynamic_list_T* enum_children;
     void* object_value;
-    void* ast;
     dynamic_list_T* list_children;
     dynamic_list_T* function_definitions;
     dynamic_list_T* composition_children;
@@ -78,6 +77,7 @@ typedef struct AST_STRUCT
     struct AST_STRUCT* new_value;
     struct AST_STRUCT* iterate_iterable;
     struct AST_STRUCT* iterate_function;
+    struct AST_STRUCT* ast;
     
     struct hermes_scope_T* scope;
 
