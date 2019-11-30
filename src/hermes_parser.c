@@ -43,6 +43,12 @@ void hermes_parser_type_error(hermes_parser_T* hermes_parser)
     exit(1);
 }
 
+void hermes_parser_syntax_error(hermes_parser_T* hermes_parser)
+{
+    printf("[Line %d] Syntax error\n", hermes_parser->hermes_lexer->line_n);
+    exit(1);
+}
+
 AST_T* hermes_parser_parse(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     return hermes_parser_parse_statements(hermes_parser, scope);
@@ -674,9 +680,20 @@ AST_T* hermes_parser_parse_function_call(hermes_parser_T* hermes_parser, hermes_
 AST_T* hermes_parser_parse_function_definition(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     AST_T* ast_type = hermes_parser_parse_type(hermes_parser, scope);
-    char* function_name = calloc(strlen(hermes_parser->current_token->value) + 1, sizeof(char));
-    strcpy(function_name, hermes_parser->current_token->value);
-    hermes_parser_eat(hermes_parser, TOKEN_ID);
+
+    char* function_name = (void*)0;
+    unsigned int is_enum = 0;
+
+    if (strcmp(ast_type->type_value, DATA_TYPE_ENUM) != 0)
+    {
+        function_name = calloc(strlen(hermes_parser->current_token->value) + 1, sizeof(char));
+        strcpy(function_name, hermes_parser->current_token->value);
+        hermes_parser_eat(hermes_parser, TOKEN_ID);
+    }
+    else
+    {
+        is_enum = 1;
+    }
 
     if (hermes_parser->current_token->type == TOKEN_LPAREN)
     {
@@ -742,20 +759,24 @@ AST_T* hermes_parser_parse_function_definition(hermes_parser_T* hermes_parser, h
         ast_variable_definition->scope = (struct hermes_scope_T*) scope;
         ast_variable_definition->variable_name = function_name;
         ast_variable_definition->variable_type = ast_type;
+
+        // Special case
+        if (is_enum)
+        {
+            ast_variable_definition->variable_value = hermes_parser_parse_enum(hermes_parser, scope);
+            ast_variable_definition->variable_name = calloc(strlen(hermes_parser->current_token->value) + 1, sizeof(char));
+            strcpy(ast_variable_definition->variable_name, hermes_parser->current_token->value);
+            hermes_parser_eat(hermes_parser, TOKEN_ID);
+        }
         
         if (hermes_parser->current_token->type == TOKEN_EQUALS)
         {
+            if (is_enum)
+                hermes_parser_syntax_error(hermes_parser);
+
             hermes_parser_eat(hermes_parser, TOKEN_EQUALS);
 
-            // Special case
-            if (strcmp(ast_type->type_value, DATA_TYPE_ENUM) == 0)
-            {
-                ast_variable_definition->variable_value = hermes_parser_parse_enum(hermes_parser, scope);
-            }
-            else
-            {
-                ast_variable_definition->variable_value = hermes_parser_parse_expr(hermes_parser, scope);
-            }
+            ast_variable_definition->variable_value = hermes_parser_parse_expr(hermes_parser, scope);
 
             /**
              * Performing all the kinds of type-checks we can possibly cover,

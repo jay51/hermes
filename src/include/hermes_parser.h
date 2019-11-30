@@ -19,6 +19,8 @@ hermes_parser_T* init_hermes_parser(hermes_lexer_T* hermes_lexer);
 
 void hermes_parser_type_error(hermes_parser_T* hermes_parser);
 
+void hermes_parser_syntax_error(hermes_parser_T* hermes_parser);
+
 AST_T* hermes_parser_parse(hermes_parser_T* hermes_parser, hermes_scope_T* scope);
 
 AST_T* hermes_parser_eat(hermes_parser_T* hermes_parser, int token_type);
