@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
-    hermes_lexer_T* hermes_lexer = init_hermes_lexer(read_file(argv[1]));
+    hermes_lexer_T* hermes_lexer = init_hermes_lexer(hermes_read_file(argv[1]));
     
     hermes_parser_T* parser = init_hermes_parser(hermes_lexer);
     AST_T* node = hermes_parser_parse(parser, (void*) 0);
@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
     hermes_lexer_free(hermes_lexer);
     free(runtime->references->items);
     free(runtime->references);
-    hermes_scope_free(runtime->scope);
+    //hermes_scope_free(runtime->scope);
 
     for (int i = 0; i < runtime->list_methods->size; i++)
     {
