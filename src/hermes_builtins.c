@@ -68,7 +68,7 @@ AST_T* hermes_builtin_function_include(AST_T* self, dynamic_list_T* args)
     AST_T* ast_str = (AST_T*) args->items[0];
     char* filename = ast_str->string_value;
 
-    hermes_lexer_T* lexer = init_hermes_lexer(read_file(filename));
+    hermes_lexer_T* lexer = init_hermes_lexer(hermes_read_file(filename));
     hermes_parser_T* parser = init_hermes_parser(lexer);
     AST_T* node = hermes_parser_parse(parser, (void*) 0);
 

@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
-    hermes_lexer_T* hermes_lexer = init_hermes_lexer(read_file(argv[1]));
+    hermes_lexer_T* hermes_lexer = init_hermes_lexer(hermes_read_file(argv[1]));
     
     hermes_parser_T* parser = init_hermes_parser(hermes_lexer);
     AST_T* node = hermes_parser_parse(parser, (void*) 0);

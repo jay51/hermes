@@ -4,5 +4,5 @@
 #include <stdlib.h>
 
 
-char* read_file(char* filename);
+char* hermes_read_file(char* filename);
 #endif
