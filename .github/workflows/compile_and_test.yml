@@ -12,6 +12,6 @@ jobs:
     - name: make
       run: make
     - name: install dependencies
-      run: sudo apt-get update -y && sudo apt-get install --yes --allow cmocka
+      run: sudo apt-get update -y && sudo apt-get install --yes cmocka
     - name: tests
       run: cd tests && make && ./test.out
