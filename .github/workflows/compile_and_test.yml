@@ -1,0 +1,17 @@
+name: Compile and test
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: make
+      run: make
+    - name: install dependencies
+      run: apt install cmocka
+    - name: tests
+      run: cd tests && make && ./test.out
