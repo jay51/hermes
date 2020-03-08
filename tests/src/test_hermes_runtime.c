@@ -1,4 +1,5 @@
 #include "include/main.h"
+#include "include/utils.h"
 #include "../../src/include/hermes_parser.h"
 #include "../../src/include/hermes_runtime.h"
 #include <string.h>
@@ -7,7 +8,7 @@
 void test_hermes_runtime_does_not_crash(void** state)
 {
     hermes_lexer_T* hermes_lexer = init_hermes_lexer(
-        "string getName() { string x = \"John\"; return x; }; print(getName());"
+        get_file_contents("sources/test_runtime.he")
     );
     
     hermes_parser_T* parser = init_hermes_parser(hermes_lexer);
@@ -21,7 +22,7 @@ void test_hermes_runtime_does_not_crash(void** state)
 void test_hermes_runtime_lists_in_lists(void** state)
 {
     hermes_lexer_T* hermes_lexer = init_hermes_lexer(
-        "list x = [[4,10,3], [\"hello\"]];\n print(x[1][0]);"
+        get_file_contents("sources/lists_in_lists.he")
     );
     
     hermes_parser_T* parser = init_hermes_parser(hermes_lexer);
@@ -35,7 +36,7 @@ void test_hermes_runtime_lists_in_lists(void** state)
 void test_hermes_runtime_list_add(void** state)
 {
     hermes_lexer_T* hermes_lexer = init_hermes_lexer(
-        "list x = [];\n x.add(123);\n print(x[0]);"
+        get_file_contents("sources/list_add.he")
     );
     
     hermes_parser_T* parser = init_hermes_parser(hermes_lexer);

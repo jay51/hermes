@@ -43,9 +43,9 @@ void hermes_lexer_free(hermes_lexer_T* hermes_lexer)
  */
 token_T* hermes_lexer_get_next_token(hermes_lexer_T* hermes_lexer)
 {
-    while (hermes_lexer->current_char != '\0' && hermes_lexer->char_index < strlen(hermes_lexer->contents) - 1)
+    while (hermes_lexer->current_char != '\0' && hermes_lexer->char_index < strlen(hermes_lexer->contents))
     {
-        while (hermes_lexer->current_char == ' ' || (int) hermes_lexer->current_char == 10 || (int) hermes_lexer->current_char == 13)
+        if (hermes_lexer->current_char == ' ' || (int) hermes_lexer->current_char == 10 || (int) hermes_lexer->current_char == 13)
             hermes_lexer_skip_whitespace(hermes_lexer);
 
         if (isdigit(hermes_lexer->current_char))
@@ -257,6 +257,10 @@ token_T* hermes_lexer_advance_with_token(hermes_lexer_T* hermes_lexer, int type)
     hermes_lexer_advance(hermes_lexer);
     token_T* token = init_token(type, value);
     free(value);
+
+    // ensures that the lexer state is correct if exited through this function.
+    hermes_lexer_skip_whitespace(hermes_lexer);
+    
     return token;
 }
 
@@ -270,7 +274,7 @@ void hermes_lexer_advance(hermes_lexer_T* hermes_lexer)
     if (hermes_lexer->current_char == '\n' || hermes_lexer->current_char == 10)
         hermes_lexer->line_n += 1;
 
-    if (hermes_lexer->current_char != '\0' && hermes_lexer->char_index < strlen(hermes_lexer->contents) - 1)
+    if (hermes_lexer->current_char != '\0' && hermes_lexer->char_index < strlen(hermes_lexer->contents))
     {
         hermes_lexer->char_index += 1;
         hermes_lexer->current_char = hermes_lexer->contents[hermes_lexer->char_index];

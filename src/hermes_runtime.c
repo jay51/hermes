@@ -367,7 +367,6 @@ AST_T* runtime_visit_variable_definition(runtime_T* runtime, AST_T* node)
 
 AST_T* runtime_visit_variable_assignment(runtime_T* runtime, AST_T* node)
 {
-    hermes_scope_T* scope = get_scope(runtime, node);
     AST_T* value = (void*) 0;
 
     AST_T* left = node->variable_assignment_left;
@@ -444,7 +443,6 @@ AST_T* runtime_visit_variable_assignment(runtime_T* runtime, AST_T* node)
 
 AST_T* runtime_visit_variable_modifier(runtime_T* runtime, AST_T* node)
 {
-    hermes_scope_T* scope = get_scope(runtime, node);
     AST_T* value = (void*) 0;
 
     AST_T* left = node->binop_left;
@@ -610,6 +608,7 @@ AST_T* runtime_function_lookup(runtime_T* runtime, hermes_scope_T* scope, AST_T*
                         case AST_INTEGER: final_result->int_value = result->int_value; break;
                         case AST_FLOAT: final_result->float_value = result->float_value; break;
                         case AST_STRING: final_result->string_value = realloc(final_result->string_value, (strlen(result->string_value) + strlen(final_result->string_value) + 1) * sizeof(char)); strcat(final_result->string_value, result->string_value); break;
+                        default: /* silence */; break;
                     }
 
                     ast_free(result);
@@ -927,6 +926,7 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
         {
             case AST_VARIABLE: access_name = right->variable_name; break;
             case AST_FUNCTION_CALL: access_name = right->function_call_name; break;
+            default: /* silence */; break;
         }
 
         if (right->type == AST_BINOP)
@@ -1402,7 +1402,6 @@ AST_T* runtime_visit_iterate(runtime_T* runtime, AST_T* node)
 {
     hermes_scope_T* scope = get_scope(runtime, node);
     AST_T* ast_iterable = runtime_visit(runtime, node->iterate_iterable);
-    AST_T* ast_funcdef = (void*) 0;
 
     for (int i = 0; i < scope->function_definitions->size; i++)
     {
@@ -1472,7 +1471,7 @@ void runtime_expect_args(dynamic_list_T* in_args, int argc, int args[])
 {
     if (in_args->size < argc)
     {
-        printf("%d arguments was provided, but expected %d.\n", in_args->size, argc);
+        printf("%d arguments was provided, but expected %d.\n", (int) in_args->size, argc);
         exit(1);
     }
 

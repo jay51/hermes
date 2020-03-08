@@ -23,7 +23,7 @@ AST_T* init_ast(int type)
     AST->function_name = (void*) 0;
     AST->binop_left = (void*) 0;
     AST->binop_right = (void*) 0;
-    AST->binop_operator;
+    AST->binop_operator = 0;
     AST->compound_value = AST->type == AST_COMPOUND ? init_dynamic_list(sizeof(struct AST_STRUCT*)) : (void*) 0;
     AST->function_call_arguments = AST->type == AST_FUNCTION_CALL ? init_dynamic_list(sizeof(struct AST_STRUCT*)) : (void*) 0;
     AST->function_definition_arguments = AST->type == AST_FUNCTION_DEFINITION ? init_dynamic_list(sizeof(struct AST_STRUCT*)) : (void*) 0;

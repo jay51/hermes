@@ -31,6 +31,7 @@ AST_T* hermes_builtin_function_print(AST_T* self, dynamic_list_T* args)
             case AST_ENUM: printf("{ enum }\n"); break;
             case AST_LIST: printf("[ list ]\n"); break;
             case AST_COMPOUND: printf("<source/>\n"); break;
+            default: printf("%p\n", ast_arg); break;
         }
     }
 
@@ -111,9 +112,9 @@ AST_T* hermes_builtin_function_wad(AST_T* self, dynamic_list_T* args)
     } 
   
     // write struct to file 
-    fwrite (&*ast_compound, sizeof(struct AST_STRUCT), 1, outfile);
+    int r = fwrite (&*ast_compound, sizeof(struct AST_STRUCT), 1, outfile);
       
-    if(fwrite != 0)
+    if(r != 0)
     {
         // silence
     }
