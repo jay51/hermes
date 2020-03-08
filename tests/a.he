@@ -1,5 +1,0 @@
-dload("/home/ianertson/workspace/testlib/libhermespi.so", "get_pi");
-
-int x = get_pi();
-
-print(x);
