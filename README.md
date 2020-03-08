@@ -257,6 +257,34 @@ iterate x with char_iterator;
 iterate y with list_iterator;
 ```
 
+## Available locals & globals / constants
+* this
+
+### This example
+> The `this` variable exists within local scopes.
+> Accessing `this` within a function will return the address of that function:
+```C
+void myfunc()
+{
+    print(this);
+}
+
+myfunc();  // 0x55824ee44970
+```
+> Accessing `this` within a function inside an object will return the address
+> of the object:
+```C
+object person =
+{
+    void myfunc()
+    {
+        print(this);
+    }
+}
+
+person.myfunc();  // { object }
+```
+
 ## Compositions
 > Hermes now also support compositions, like this:
 ```C
