@@ -140,6 +140,7 @@ wad(s, "functions");
 * fopen
 * fputs
 * fclose
+* input
 * free
 
 ### print
@@ -207,6 +208,14 @@ fclose(file);
 ```C
 object file = fopen("myfile.txt", "w+");
 fclose(file);
+```
+
+### input
+> Read from user input, stdin:
+```C
+string a = input("Say something: ");
+
+print("You said: " + a);
 ```
 
 ### free
