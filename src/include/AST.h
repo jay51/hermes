@@ -78,6 +78,7 @@ typedef struct AST_STRUCT
     struct AST_STRUCT* iterate_iterable;
     struct AST_STRUCT* iterate_function;
     struct AST_STRUCT* ast;
+    struct AST_STRUCT* parent;
     
     struct hermes_scope_T* scope;
 
