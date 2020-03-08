@@ -8,7 +8,6 @@ typedef struct AST_STRUCT
     enum {
         AST_OBJECT,
         AST_ENUM,
-        AST_REFERENCE,
         AST_VARIABLE,
         AST_VARIABLE_DEFINITION,
         AST_VARIABLE_ASSIGNMENT,

@@ -47,7 +47,6 @@ print(response)
 * char
 * string
 * object
-* ref
 * source
 
 ### List example
@@ -113,14 +112,6 @@ object person = {
 };
 
 print(person.name);
-```
-
-### Ref example
-> Refs are supposed to be used when integrating hermes in some sort of environment and you want to keep track of "references" that the programmer can work with.
-```C
-ref something;
-
-something.x += 1;
 ```
 
 ### Source example

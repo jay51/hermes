@@ -10,7 +10,6 @@ const char* DATA_TYPE_FLOAT = "float";
 const char* DATA_TYPE_BOOLEAN = "bool";
 const char* DATA_TYPE_OBJECT = "object";
 const char* DATA_TYPE_ENUM = "enum";
-const char* DATA_TYPE_REFERENCE = "ref";
 const char* DATA_TYPE_LIST = "list";
 const char* DATA_TYPE_SOURCE = "source";
 
@@ -116,8 +115,7 @@ AST_T* hermes_parser_parse_statement(hermes_parser_T* hermes_parser, hermes_scop
                 strcmp(token_value, DATA_TYPE_OBJECT) == 0 ||
                 strcmp(token_value, DATA_TYPE_ENUM) == 0 ||
                 strcmp(token_value, DATA_TYPE_LIST) == 0 ||
-                strcmp(token_value, DATA_TYPE_SOURCE) == 0 ||
-                strcmp(token_value, DATA_TYPE_REFERENCE) == 0
+                strcmp(token_value, DATA_TYPE_SOURCE) == 0
             )
                 return hermes_parser_parse_function_definition(hermes_parser, scope);
 
@@ -500,8 +498,7 @@ AST_T* hermes_parser_parse_term(hermes_parser_T* hermes_parser, hermes_scope_T* 
         strcmp(token_value, DATA_TYPE_OBJECT) == 0 ||
         strcmp(token_value, DATA_TYPE_ENUM) == 0 ||
         strcmp(token_value, DATA_TYPE_LIST) == 0 ||
-        strcmp(token_value, DATA_TYPE_SOURCE) == 0 ||
-        strcmp(token_value, DATA_TYPE_REFERENCE) == 0
+        strcmp(token_value, DATA_TYPE_SOURCE) == 0
     ) // this is to be able to have variable definitions inside of function definition parantheses.
         return hermes_parser_parse_function_definition(hermes_parser, scope);
 
