@@ -19,5 +19,7 @@ AST_T* hermes_builtin_function_fclose(AST_T* self, dynamic_list_T* args);
 
 AST_T* hermes_builtin_function_fputs(AST_T* self, dynamic_list_T* args);
 
+AST_T* hermes_builtin_function_input(AST_T* self, dynamic_list_T* args);
+
 AST_T* INITIALIZED_NOOP;
 #endif

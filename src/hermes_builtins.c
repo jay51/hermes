@@ -271,3 +271,60 @@ AST_T* hermes_builtin_function_fputs(AST_T* self, dynamic_list_T* args)
 
     return return_ast;
 }
+
+/**
+ * Built-in function to read user input from stdin.
+ *
+ * @param AST_T* self
+ * @param dynamic_list_T* args
+ *
+ * @return AST_T*
+ */
+AST_T* hermes_builtin_function_input(AST_T* self, dynamic_list_T* args)
+{
+    char* str;
+    int c;
+    int i;
+    int size = 10;
+
+    str = malloc(size * sizeof(char));
+    
+    if (args->size > 0)
+        printf("%s", ((AST_T*)args->items[0])->string_value);
+
+    for(i = 0; (c = getchar()) != '\n' && c != EOF; ++i)
+    {
+        if(i == size)
+        {
+            size = 2*size;
+            str = realloc(str, size*sizeof(char));
+
+            if(str == NULL)
+            {
+                printf("Cannot reallic string.\n");
+                exit(-1);
+            }
+        }
+
+        str[i] = c;
+    }
+
+    if(i == size)
+    {
+        str = realloc(str, (size+1)*sizeof(char));
+
+        if(str == NULL)
+        {
+            printf("Cannot realloc string.\n");
+            exit(-1);
+        }
+
+    }
+
+    str[i] = '\0';
+
+    AST_T* ast = init_ast(AST_STRING);
+    ast->string_value = str;
+
+    return ast;
+}
