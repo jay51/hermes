@@ -202,6 +202,17 @@ unsigned int _boolean_evaluation(AST_T* node)
 
 AST_T* get_variable_definition_by_name(runtime_T* runtime, hermes_scope_T* scope, char* variable_name)
 {
+    if (scope->owner)
+    {
+        if (strcmp(variable_name, "this") == 0)
+        {
+            if (scope->owner->parent)
+                return scope->owner->parent;
+
+            return scope->owner;
+        }
+    }
+
     for (int i = 0; i < scope->variable_definitions->size; i++)
     {
         AST_T* variable_definition = (AST_T*) scope->variable_definitions->items[i];
@@ -876,11 +887,10 @@ AST_T* runtime_visit_attribute_access(runtime_T* runtime, AST_T* node)
             for (int i = 0; i < left->object_children->size; i++)
             {
                 AST_T* obj_child = (AST_T*) left->object_children->items[i];
-
-                if (obj_child->type != AST_FUNCTION_DEFINITION)
-                    continue;
-
-                return _runtime_function_call(runtime, node->binop_right, obj_child); 
+                
+                if (obj_child->type == AST_FUNCTION_DEFINITION)
+                    if (strcmp(obj_child->function_name, node->binop_right->function_call_name) == 0)
+                        return _runtime_function_call(runtime, node->binop_right, obj_child);
             }
         }
     }

@@ -31,6 +31,7 @@ AST_T* init_ast(int type)
     AST->enum_children = AST->type == AST_ENUM ? init_dynamic_list(sizeof(struct AST_STRUCT*)) : (void*) 0;
     AST->object_value = (void*) 0;
     AST->ast = (void*) 0;
+    AST->parent = (void*) 0;
     AST->list_children = AST->type == AST_LIST ? init_dynamic_list(sizeof(struct AST_STRUCT*)) : (void*) 0;
     AST->function_definitions = (void*) 0;
     AST->composition_children = AST->type == AST_FUNCTION_DEFINITION ? init_dynamic_list(sizeof(struct AST_STRUCT*)) : (void*) 0;

@@ -48,6 +48,14 @@ void hermes_parser_syntax_error(hermes_parser_T* hermes_parser)
     exit(1);
 }
 
+static AST_T* as_object_child(AST_T* ast, AST_T* object)
+{
+    ast->is_object_child = 1;
+    ast->parent = object;
+
+    return ast;
+}
+
 AST_T* hermes_parser_parse(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     return hermes_parser_parse_statements(hermes_parser, scope);
@@ -337,14 +345,14 @@ AST_T* hermes_parser_parse_object(hermes_parser_T* hermes_parser, hermes_scope_T
     if (hermes_parser->current_token->type != TOKEN_RBRACE)
     {
         if (hermes_parser->current_token->type == TOKEN_ID)
-            dynamic_list_append(ast_object->object_children, hermes_parser_parse_function_definition(hermes_parser, new_scope));
+            dynamic_list_append(ast_object->object_children, as_object_child(hermes_parser_parse_function_definition(hermes_parser, new_scope), ast_object));
 
         while (hermes_parser->current_token->type == TOKEN_SEMI)
         {
             hermes_parser_eat(hermes_parser, TOKEN_SEMI);
 
             if (hermes_parser->current_token->type == TOKEN_ID)
-                dynamic_list_append(ast_object->object_children, hermes_parser_parse_function_definition(hermes_parser, new_scope));
+                dynamic_list_append(ast_object->object_children, as_object_child(hermes_parser_parse_function_definition(hermes_parser, new_scope), ast_object));
         }
     }
     

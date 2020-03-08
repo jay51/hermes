@@ -13,7 +13,8 @@ int main(int argc, char* argv[])
         cmocka_unit_test(test_hermes_parser_function_definition_does_not_crash),
         cmocka_unit_test(test_hermes_runtime_does_not_crash),
         cmocka_unit_test(test_hermes_runtime_lists_in_lists),
-        cmocka_unit_test(test_hermes_runtime_list_add)
+        cmocka_unit_test(test_hermes_runtime_list_add),
+        cmocka_unit_test(test_hermes_runtime_this)
     };
 
     int count_fail_tests =
