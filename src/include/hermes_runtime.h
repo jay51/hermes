@@ -6,22 +6,10 @@
 typedef struct RUNTIME_STRUCT
 {
     hermes_scope_T* scope;
-    dynamic_list_T* references;
     dynamic_list_T* list_methods;
 } runtime_T;
 
-typedef struct RUNTIME_REFERENCE_STRUCT
-{
-    AST_T* object;
-} runtime_reference_T;
-
 runtime_T* init_runtime();
-
-runtime_reference_T* init_runtime_reference();
-
-runtime_reference_T* runtime_get_reference(runtime_T* runtime, char* variable_name);
-
-runtime_reference_T* runtime_register_reference(runtime_T* runtime, runtime_reference_T* runtime_reference);
 
 AST_T* runtime_visit(runtime_T* runtime, AST_T* node);
 

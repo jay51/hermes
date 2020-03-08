@@ -5,16 +5,6 @@
 #include <string.h>
 
 
-static void _reference_not_registered_error(char* reference_name)
-{
-    printf(
-        "The reference `%s` is not registered in the current runtime.\n",
-        reference_name
-    );
-
-    exit(1);
-}
-
 static void _multiple_variable_definitions_error(char* variable_name)
 {
     printf("The variable `%s` is already defined.\n", variable_name);
@@ -97,7 +87,6 @@ runtime_T* init_runtime()
 {
     runtime_T* runtime = calloc(1, sizeof(struct RUNTIME_STRUCT));
     runtime->scope = init_hermes_scope(1);
-    runtime->references = init_dynamic_list(sizeof(struct RUNTIME_REFERENCE_STRUCT*));
     runtime->list_methods = init_dynamic_list(sizeof(struct AST_STRUCT*));
 
     INITIALIZED_NOOP = init_ast(AST_NOOP);
@@ -159,35 +148,6 @@ runtime_T* init_runtime()
     return runtime;
 }
 
-runtime_reference_T* init_runtime_reference()
-{
-    runtime_reference_T* runtime_reference = calloc(1, sizeof(struct RUNTIME_REFERENCE_STRUCT));
-    runtime_reference->object = init_ast(AST_OBJECT);
-    runtime_reference->object->object_children = init_dynamic_list(sizeof(struct AST_STRUCT));
-
-    return runtime_reference;
-}
-
-runtime_reference_T* runtime_get_reference(runtime_T* runtime, char* variable_name)
-{
-    for (int i = 0; i < runtime->references->size; i++)
-    {
-        runtime_reference_T* reference = (runtime_reference_T*) runtime->references->items[i];
-
-        if (strcmp(reference->object->variable_name, variable_name) == 0)
-            return reference;
-    }
-
-    return (void*) 0;
-}
-
-runtime_reference_T* runtime_register_reference(runtime_T* runtime, runtime_reference_T* runtime_reference)
-{
-    dynamic_list_append(runtime->references, runtime_reference);
-
-    return runtime_reference;
-}
-
 AST_T* runtime_visit(runtime_T* runtime, AST_T* node)
 {
     if (!node)
@@ -247,25 +207,7 @@ AST_T* get_variable_definition_by_name(runtime_T* runtime, hermes_scope_T* scope
         AST_T* variable_definition = (AST_T*) scope->variable_definitions->items[i];
 
         if (strcmp(variable_definition->variable_name, variable_name) == 0)
-        {
-            if (variable_definition->variable_type)
-            {
-                if (strcmp(variable_definition->variable_type->type_value, "ref") == 0)
-                {
-                    runtime_reference_T* runtime_reference = runtime_get_reference(
-                        runtime,
-                        variable_name
-                    );
-
-                    if (runtime_reference == (void*) 0)
-                        _reference_not_registered_error(variable_name);
-
-                    return runtime_visit(runtime, runtime_reference->object);
-                }
-            }
-
             return variable_definition;
-        }
     }
 
     return (void*) 0;
@@ -291,19 +233,6 @@ AST_T* runtime_visit_variable(runtime_T* runtime, AST_T* node)
 
                 if (strcmp(object_var_def->variable_name, node->variable_name) == 0)
                 {
-                    if (strcmp(object_var_def->variable_type->type_value, "ref") == 0)
-                    {
-                        runtime_reference_T* runtime_reference = runtime_get_reference(
-                            runtime,
-                            node->variable_name
-                        );
-
-                        if (runtime_reference == (void*) 0)
-                            _reference_not_registered_error(node->variable_name);
-
-                        return runtime_visit(runtime, runtime_reference->object);
-                    }
-         
                     if (!object_var_def->variable_value)
                         return object_var_def;
 
@@ -866,23 +795,6 @@ AST_T* runtime_visit_attribute_access(runtime_T* runtime, AST_T* node)
 
     AST_T* left = runtime_visit(runtime, node->binop_left);
 
-    if (left->type == AST_VARIABLE_DEFINITION)
-    {
-        if (strcmp(left->variable_type->type_value, "ref") == 0)
-        {
-            runtime_reference_T* reference = runtime_get_reference(runtime, left->variable_name);
-
-            if (!reference)
-            {
-                _reference_not_registered_error(left->variable_name);
-            }
-            else
-            {
-                left = reference->object;
-            }
-        }
-    }
-    else
     if (left->type == AST_LIST || left->type == AST_STRING)
     {
         if (node->binop_right->type == AST_VARIABLE)
@@ -1015,24 +927,6 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
         {
             case AST_VARIABLE: access_name = right->variable_name; break;
             case AST_FUNCTION_CALL: access_name = right->function_call_name; break;
-        }
-
-        if (left->type == AST_VARIABLE_DEFINITION)
-        {
-            if (strcmp(left->variable_type->type_value, "ref") == 0)
-            {
-                runtime_reference_T* reference = runtime_get_reference(runtime, left->variable_name);
-
-                if (!reference)
-                {
-                    printf("The reference `%s` is not registered in the current runtime.\n", left->variable_name);
-                    exit(1);
-                }
-                else
-                {
-                    left = reference->object;
-                }
-            }
         }
 
         if (right->type == AST_BINOP)
