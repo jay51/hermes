@@ -133,6 +133,11 @@ runtime_T* init_runtime()
     FPUTS_FUNCTION_DEFINITION->fptr = hermes_builtin_function_fputs;
     dynamic_list_append(runtime->scope->function_definitions, FPUTS_FUNCTION_DEFINITION);
 
+    AST_T* INPUT_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);
+    INPUT_FUNCTION_DEFINITION->function_name = create_str("input");
+    INPUT_FUNCTION_DEFINITION->fptr = hermes_builtin_function_input;
+    dynamic_list_append(runtime->scope->function_definitions, INPUT_FUNCTION_DEFINITION);
+
     // LIST FUNCTIONS
 
     AST_T* LIST_ADD_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);
