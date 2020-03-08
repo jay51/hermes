@@ -265,7 +265,7 @@ AST_T* hermes_parser_parse_boolean(hermes_parser_T* hermes_parser, hermes_scope_
     else if (strcmp(hermes_parser->current_token->value, "true") == 0)
         ast_boolean->boolean_value = 1;
     else
-        printf("%s is not a boolean value\n");
+        printf("%p is not a boolean value\n", hermes_parser->current_token->value);
 
     hermes_parser_eat(hermes_parser, TOKEN_ID);
 
@@ -792,6 +792,7 @@ AST_T* hermes_parser_parse_function_definition(hermes_parser_T* hermes_parser, h
                 case AST_LIST: if (strcmp(ast_type->type_value, DATA_TYPE_LIST) != 0) hermes_parser_type_error(hermes_parser); break;
                 case AST_CHAR: if (strcmp(ast_type->type_value, DATA_TYPE_CHAR) != 0) hermes_parser_type_error(hermes_parser); break;
                 case AST_COMPOUND: if (strcmp(ast_type->type_value, DATA_TYPE_SOURCE) != 0) hermes_parser_type_error(hermes_parser); break;
+                default: /* silence */; break;
             }
         }
 

@@ -109,7 +109,7 @@ void hermes_scope_free(hermes_scope_T* hermes_scope)
     free(hermes_scope);
 }
 
-static void free_variable_definition(void* n)
+/*static void free_variable_definition(void* n)
 {
     AST_T* node = (AST_T*) n;
     ast_free(node);
@@ -119,7 +119,7 @@ static void free_function_definition(void* n)
 {
     AST_T* node = (AST_T*) n;
     ast_free(node);
-}
+}*/
 
 void hermes_scope_clear_variable_definitions(hermes_scope_T* scope)
 {

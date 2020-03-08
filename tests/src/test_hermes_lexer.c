@@ -1,4 +1,5 @@
 #include "include/main.h"
+#include "include/utils.h"
 #include "include/test_hermes_lexer.h"
 #include "../../src/include/hermes_lexer.h"
 
@@ -6,7 +7,7 @@
 void test_hermes_lexer_behavior(void** state)
 {
     hermes_lexer_T* hermes_lexer = init_hermes_lexer(
-        "{ actor = { width = 32; height = 32; texture = \"/tmp\"; }; }"
+        get_file_contents("sources/test_lexer.he")
     );
 
     assert_true(hermes_lexer != NULL);
@@ -37,5 +38,6 @@ void test_hermes_lexer_behavior(void** state)
     assert_true(hermes_lexer_get_next_token(hermes_lexer)->type == TOKEN_SEMI);
 
     assert_true(hermes_lexer_get_next_token(hermes_lexer)->type == TOKEN_RBRACE);
+
     assert_true(hermes_lexer->current_char == '\0');
 }
