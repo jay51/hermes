@@ -141,6 +141,17 @@ AST_T* hermes_parser_parse_statement(hermes_parser_T* hermes_parser, hermes_scop
             }
             else
             {
+                if (hermes_parser->current_token->type == TOKEN_EQUALS)
+                {
+                    /**
+                     * The programmer is trying to define a variable without
+                     * a type.
+                     * This is not allowed.
+                     */
+                    printf("Missing type for variable `%s`\n", hermes_parser->prev_token->value);
+                    exit(1);
+                }
+
                 a = hermes_parser_parse_variable(hermes_parser, scope);
             }
 
@@ -167,7 +178,6 @@ AST_T* hermes_parser_parse_statement(hermes_parser_T* hermes_parser, hermes_scop
 
             if (a)
                 return a;
-
         } break;
         case TOKEN_NUMBER_VALUE: case TOKEN_STRING_VALUE: case TOKEN_CHAR_VALUE: case TOKEN_FLOAT_VALUE: case TOKEN_INTEGER_VALUE: return hermes_parser_parse_expr(hermes_parser, scope); break;
         default: return init_ast(AST_NOOP); break;
