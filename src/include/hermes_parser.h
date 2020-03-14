@@ -77,6 +77,8 @@ AST_T* hermes_parser_parse_new(hermes_parser_T* hermes_parser, hermes_scope_T* s
 
 AST_T* hermes_parser_parse_iterate(hermes_parser_T* hermes_parser, hermes_scope_T* scope);
 
+AST_T* hermes_parser_parse_assert(hermes_parser_T* hermes_parser, hermes_scope_T* scope);
+
 // loops
 
 AST_T* hermes_parser_parse_while(hermes_parser_T* hermes_parser, hermes_scope_T* scope);

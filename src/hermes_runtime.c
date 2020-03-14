@@ -5,6 +5,14 @@
 #include <string.h>
 
 
+hermes_scope_T* get_scope(runtime_T* runtime, AST_T* node)
+{
+    if (!node->scope)
+        return runtime->scope;
+
+    return (hermes_scope_T*) node->scope;
+}
+
 static void _multiple_variable_definitions_error(char* variable_name)
 {
     printf("The variable `%s` is already defined.\n", variable_name);
@@ -187,6 +195,7 @@ AST_T* runtime_visit(runtime_T* runtime, AST_T* node)
         case AST_WHILE: return runtime_visit_while(runtime, node); break;
         case AST_NEW: return runtime_visit_new(runtime, node); break;
         case AST_ITERATE: return runtime_visit_iterate(runtime, node); break;
+        case AST_ASSERT: return runtime_visit_assert(runtime, node); break;
         default: printf("Uncaught statement %d\n", node->type); exit(1); break;
     }
 }
@@ -1474,12 +1483,15 @@ AST_T* runtime_visit_iterate(runtime_T* runtime, AST_T* node)
     return INITIALIZED_NOOP;
 }
 
-hermes_scope_T* get_scope(runtime_T* runtime, AST_T* node)
+AST_T* runtime_visit_assert(runtime_T* runtime, AST_T* node)
 {
-    if (!node->scope)
-        return runtime->scope;
+    if (!_boolean_evaluation(runtime_visit(runtime, node->assert_expr)))
+    {
+        printf("assertment failed.\n");
+        exit(1);
+    }
 
-    return (hermes_scope_T*) node->scope;
+    return INITIALIZED_NOOP;
 }
 
 void runtime_expect_args(dynamic_list_T* in_args, int argc, int args[])

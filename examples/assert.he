@@ -1,0 +1,8 @@
+print("Asserting 1 == 1");
+assert 1 == 1;
+print("OK");
+
+
+print("Asserting 1 == 0");
+assert 1 == 0;
+print("OK");

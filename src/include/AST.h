@@ -34,7 +34,8 @@ typedef struct AST_STRUCT
         AST_ATTRIBUTE_ACCESS,
         AST_LIST_ACCESS,
         AST_NEW,
-        AST_ITERATE
+        AST_ITERATE,
+        AST_ASSERT
     } type;
     
     char* function_call_name;
@@ -79,6 +80,7 @@ typedef struct AST_STRUCT
     struct AST_STRUCT* iterate_function;
     struct AST_STRUCT* ast;
     struct AST_STRUCT* parent;
+    struct AST_STRUCT* assert_expr;
     
     struct hermes_scope_T* scope;
 

@@ -19,6 +19,7 @@ const char* STATEMENT_ELSE = "else";
 const char* STATEMENT_RETURN = "return";
 const char* STATEMENT_NEW = "new";
 const char* STATEMENT_ITERATE = "iterate";
+const char* STATEMENT_ASSERT = "assert";
 
 const char* VALUE_FALSE = "false";
 const char* VALUE_TRUE = "true";
@@ -112,6 +113,9 @@ AST_T* hermes_parser_parse_statement(hermes_parser_T* hermes_parser, hermes_scop
 
             if (strcmp(token_value, STATEMENT_ITERATE) == 0)
                 return hermes_parser_parse_iterate(hermes_parser, scope);
+
+            if (strcmp(token_value, STATEMENT_ASSERT) == 0)
+                return hermes_parser_parse_assert(hermes_parser, scope);
 
             if (
                 strcmp(token_value, DATA_TYPE_VOID) == 0 ||
@@ -637,6 +641,15 @@ AST_T* hermes_parser_parse_iterate(hermes_parser_T* hermes_parser, hermes_scope_
     ast_iterate->iterate_function = ast_fname;
 
     return ast_iterate;
+}
+
+AST_T* hermes_parser_parse_assert(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
+{
+    hermes_parser_eat(hermes_parser, TOKEN_ID);
+    AST_T* ast_assert = init_ast(AST_ASSERT);
+    ast_assert->assert_expr = hermes_parser_parse_expr(hermes_parser, scope);
+
+    return ast_assert;
 }
 
 // loops
