@@ -492,7 +492,7 @@ AST_T* hermes_parser_parse_factor(hermes_parser_T* hermes_parser, hermes_scope_T
         case TOKEN_CHAR_VALUE: return hermes_parser_parse_char(hermes_parser, scope); break;
         case TOKEN_LBRACE: return hermes_parser_parse_object(hermes_parser, scope); break;
         case TOKEN_LBRACKET: return hermes_parser_parse_list(hermes_parser, scope); break;
-        default: return hermes_parser_parse_expr(hermes_parser, scope); break;
+        default: printf("Unexpected %s\n", hermes_parser->current_token->value); exit(1); break;
     }
 }
 
