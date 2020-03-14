@@ -136,24 +136,9 @@ AST_T* hermes_parser_parse_statement(hermes_parser_T* hermes_parser, hermes_scop
             AST_T* a = (void*) 0;
 
             if (hermes_parser->current_token->type == TOKEN_LPAREN)
-            {
                 a = hermes_parser_parse_function_call(hermes_parser, scope);
-            }
             else
-            {
-                if (hermes_parser->current_token->type == TOKEN_EQUALS)
-                {
-                    /**
-                     * The programmer is trying to define a variable without
-                     * a type.
-                     * This is not allowed.
-                     */
-                    printf("Missing type for variable `%s`\n", hermes_parser->prev_token->value);
-                    exit(1);
-                }
-
                 a = hermes_parser_parse_variable(hermes_parser, scope);
-            }
 
             while (hermes_parser->current_token->type == TOKEN_DOT)
             {
