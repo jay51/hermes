@@ -463,7 +463,7 @@ AST_T* runtime_visit_variable_assignment(runtime_T* runtime, AST_T* node)
         }
     }
 
-    printf("Cant set undefined variable `%s`\n", node->variable_name); exit(1);
+    printf("Cant set undefined variable `%s`\n", left->variable_name); exit(1);
 }
 
 AST_T* runtime_visit_variable_modifier(runtime_T* runtime, AST_T* node)
