@@ -2,4 +2,6 @@
 #define HERMES_STRING_UTILS_H
 #include <stdlib.h>
 char* hermes_char_to_string(char c);
+
+char* hermes_init_str(const char* value);
 #endif

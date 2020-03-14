@@ -18,20 +18,16 @@ AST_T* hermes_builtin_function_print(AST_T* self, dynamic_list_T* args)
     for (int i = 0; i < args->size; i++)
     {
         AST_T* ast_arg = (AST_T*) args->items[i];
+        char* str = ast_to_string(ast_arg);
 
-        switch (ast_arg->type)
+        if (str == (void*)0)
         {
-            case AST_NULL: case AST_NOOP: printf("NULL\n"); break;
-            case AST_STRING: printf("%s\n", ast_arg->string_value); break;
-            case AST_CHAR: printf("%c\n", ast_arg->char_value); break;
-            case AST_INTEGER: printf("%d\n", ast_arg->int_value); break;
-            case AST_FLOAT: printf("%0.6f\n", ast_arg->float_value); break;
-            case AST_BOOLEAN: printf("%d\n", ast_arg->boolean_value); break;
-            case AST_OBJECT: printf("{ object }\n"); break;
-            case AST_ENUM: printf("{ enum }\n"); break;
-            case AST_LIST: printf("[ list ]\n"); break;
-            case AST_COMPOUND: printf("<source/>\n"); break;
-            default: printf("%p\n", ast_arg); break;
+            printf("(void*)0\n");
+        }
+        else
+        {
+            printf("%s\n", str);
+            free(str);
         }
     }
 
