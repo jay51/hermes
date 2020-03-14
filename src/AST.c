@@ -1,5 +1,6 @@
 #include "include/AST.h"
 #include "include/hermes_scope.h"
+#include "include/string_utils.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -515,4 +516,139 @@ AST_T* ast_copy(AST_T* ast)
         case AST_WHILE: return ast_r_scope(ast_copy_while(ast), ast->scope); break;
         default: printf("WARNING\n"); return (void*)0; break;
     }
+}
+
+/**
+ * Converts an AST node to a memory allocated string.
+ *
+ * @param AST_T* ast
+ *
+ * @return char*
+ */
+char* ast_to_string(AST_T* ast)
+{
+    switch (ast->type)
+    {
+        case AST_OBJECT: return ast_object_to_string(ast); break;
+        case AST_VARIABLE: return ast->variable_name; break;
+        case AST_FUNCTION_DEFINITION: return ast_function_definition_to_string(ast); break;
+        case AST_FUNCTION_CALL: return ast_function_call_to_string(ast); break;
+        case AST_NULL: return ast_null_to_string(ast); break;
+        case AST_STRING: return ast->string_value; break;
+        case AST_CHAR: return hermes_char_to_string(ast->char_value); break;
+        case AST_FLOAT: return ast_float_to_string(ast); break;
+        case AST_LIST: return ast_list_to_string(ast); break;
+        case AST_BOOLEAN: return ast_boolean_to_string(ast); break;
+        case AST_INTEGER: return ast_integer_to_string(ast); break;
+        case AST_TYPE: return ast_type_to_string(ast); break;
+        case AST_ATTRIBUTE_ACCESS: return ast_attribute_access_to_string(ast); break;
+        case AST_LIST_ACCESS: return ast_list_access_to_string(ast); break;
+        case AST_BINOP: return ast_binop_to_string(ast); break;
+        case AST_NOOP: return 0; break;
+        case AST_BREAK: return 0; break;
+        case AST_RETURN: return ast_to_string(ast->return_value); break;
+        default: printf("Could not convert AST of type `%d` to string.\n", ast->type); return (void*)0; break;
+    }
+
+    return (void*)0;
+}
+
+char* ast_object_to_string(AST_T* ast)
+{
+    return hermes_init_str("{ object }");    
+}
+
+char* ast_function_definition_to_string(AST_T* ast)
+{
+    // TODO concat function definition type to the beginning of the str.
+    const char* template = "%s (%d)";
+    char* str = calloc(strlen(template) + strlen(ast->variable_name) + 128, sizeof(char));
+    sprintf(str, template, ast->variable_name, (int)ast->function_definition_arguments->size);
+
+    return str;
+}
+
+char* ast_function_call_to_string(AST_T* ast)
+{
+    const char* template = "%s (%d)";
+    char* str = calloc(strlen(template) + strlen(ast->function_call_name) + 128, sizeof(char));
+    sprintf(str, template, ast->function_call_name, (int)ast->function_call_arguments->size);
+
+    return str;
+}
+
+char* ast_null_to_string(AST_T* ast)
+{
+    return hermes_init_str("NULL");
+}
+
+char* ast_float_to_string(AST_T* ast)
+{
+    const char* template = "%12.6f";
+    char* str = calloc(strlen(template) + 24, sizeof(char));
+    sprintf(str, template, ast->float_value);
+
+    return str;
+}
+
+char* ast_list_to_string(AST_T* ast)
+{
+    return hermes_init_str("[ list ]");
+}
+
+char* ast_boolean_to_string(AST_T* ast)
+{
+    const char* template = "%d";
+    char* str = calloc(strlen(template) + 1, sizeof(char));
+    sprintf(str, template, (int) ast->boolean_value);
+
+    return str;
+}
+
+char* ast_integer_to_string(AST_T* ast)
+{
+    const char* template = "%d";
+    char* str = calloc(strlen(template) + 1, sizeof(char));
+    sprintf(str, template, (int) ast->int_value);
+
+    return str;
+}
+
+char* ast_type_to_string(AST_T* ast)
+{
+    return hermes_init_str("< type >");
+}
+
+char* ast_attribute_access_to_string(AST_T* ast)
+{
+    char* left = ast_to_string(ast->binop_left);
+    char* right = ast_to_string(ast->binop_right);
+    char* str = calloc(strlen(left) + strlen(right) + 2, sizeof(char));
+    strcat(str, left);
+    strcat(str, ".");
+    strcat(str, right);
+    free(left);
+    free(right);
+
+    return str;
+}
+
+char* ast_list_access_to_string(AST_T* ast)
+{
+    // TODO: return more relevant data.
+    return hermes_init_str("[ list_access ]");
+}
+
+char* ast_binop_to_string(AST_T* ast)
+{
+    char* left = ast_to_string(ast->binop_left);
+    char* right = ast_to_string(ast->binop_right);
+    char* str = calloc(strlen(left) + strlen(right) + 2, sizeof(char));
+    strcat(str, left);
+    strcat(str, "?");
+    strcat(str, right);
+    free(left);
+    free(right);
+
+    return str;
 }

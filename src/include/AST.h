@@ -115,4 +115,19 @@ AST_T* ast_copy_list_access(AST_T* ast);
 AST_T* ast_copy_binop(AST_T* ast);
 AST_T* ast_copy_if(AST_T* ast);
 AST_T* ast_copy_while(AST_T* ast);
+
+char* ast_to_string(AST_T* ast);
+char* ast_object_to_string(AST_T* ast);
+char* ast_function_definition_to_string(AST_T* ast);
+char* ast_function_call_to_string(AST_T* ast);
+char* ast_null_to_string(AST_T* ast);
+char* ast_float_to_string(AST_T* ast);
+char* ast_list_to_string(AST_T* ast);
+char* ast_boolean_to_string(AST_T* ast);
+char* ast_integer_to_string(AST_T* ast);
+char* ast_type_to_string(AST_T* ast);
+char* ast_attribute_access_to_string(AST_T* ast);
+char* ast_list_access_to_string(AST_T* ast);
+char* ast_binop_to_string(AST_T* ast);
+
 #endif

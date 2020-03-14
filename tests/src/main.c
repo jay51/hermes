@@ -15,7 +15,8 @@ int main(int argc, char* argv[])
         cmocka_unit_test(test_hermes_runtime_lists_in_lists),
         cmocka_unit_test(test_hermes_runtime_list_add),
         cmocka_unit_test(test_hermes_runtime_this),
-        cmocka_unit_test(test_hermes_runtime_assert)
+        cmocka_unit_test(test_hermes_runtime_assert),
+        cmocka_unit_test(test_hermes_runtime_to_string)
     };
 
     int count_fail_tests =
