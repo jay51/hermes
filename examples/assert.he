@@ -1,8 +1,8 @@
-print("Asserting 1 == 1");
 assert 1 == 1;
-print("OK");
 
+int get_number()
+{
+    return 5 + 5;
+}
 
-print("Asserting 1 == 0");
-assert 1 == 0;
-print("OK");
+assert 20 == get_number();

@@ -1487,7 +1487,26 @@ AST_T* runtime_visit_assert(runtime_T* runtime, AST_T* node)
 {
     if (!_boolean_evaluation(runtime_visit(runtime, node->assert_expr)))
     {
-        printf("assertment failed.\n");
+        char* str = (void*)0;
+
+        if (node->assert_expr->type == AST_BINOP)
+        {
+            const char* template = "ASSERT(%s, %s)";
+            char* left = ast_to_string(node->assert_expr->binop_left);
+            char* right = ast_to_string(node->assert_expr->binop_right);
+            str = calloc(strlen(template) + strlen(left) + strlen(right) + 1, sizeof(char));
+            sprintf(str, template, left, right);
+        }
+        else
+        {
+            const char* template = "ASSERT(%s)";
+            char* value = ast_to_string(node->assert_expr);
+            str = calloc(strlen(template) + strlen(value) + 1, sizeof(char));
+            sprintf(str, template, value);
+        }
+
+        printf("Assertment failed! %s\n", str);
+        free(str);
         exit(1);
     }
 
