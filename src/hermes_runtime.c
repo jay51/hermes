@@ -1433,6 +1433,18 @@ AST_T* runtime_visit_iterate(runtime_T* runtime, AST_T* node)
 
         if (strcmp(fdef->function_name, node->iterate_function->variable_name) == 0)
         {
+            if (fdef->fptr != (void*)0)
+            {
+                /**
+                 * This is currently not supported, but it would be nice
+                 * to have this working.
+                 *
+                 * TODO: Make this possible?
+                 */
+                printf("Can not iterate with native method `%s`\n", fdef->function_name);
+                exit(1);
+            }
+
             hermes_scope_T* fdef_body_scope = (hermes_scope_T*) fdef->function_definition_body->scope;
             char* iterable_varname = ((AST_T*)fdef->function_definition_arguments->items[0])->variable_name;
             int x = 0;

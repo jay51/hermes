@@ -1,1 +1,11 @@
-x = 3;
+void print_list(list l)
+{
+    void list_printer(void e)
+    {
+        print(e);
+    }
+
+    iterate l with print;
+}
+
+print_list(["apple", "pear", "banana"]);
