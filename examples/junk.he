@@ -5,7 +5,7 @@ void print_list(list l)
         print(e);
     }
 
-    iterate l with print;
+    iterate l with list_printer;
 }
 
 print_list(["apple", "pear", "banana"]);
