@@ -17,5 +17,5 @@ void yo()
     print(this);
 };
 
-person.say_something();
+//person.say_something();
 yo();
