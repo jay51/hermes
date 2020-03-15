@@ -225,6 +225,17 @@ string x = "hello";
 free(x);
 ```
 
+## Anonymous functions
+> To define an anonymous function, name it `@`; like this:
+```C
+void somefunction(void func)
+{
+    func();
+}
+
+somefunction(void @(){ print("Hello from anonymous function"); });
+```
+
 ## Available statements
 * new
 * iterate
