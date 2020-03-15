@@ -1,14 +1,8 @@
-void yo()
+void m(void a, void b, void c)
 {
-    print("yo");
+    a();
+    b();
+    c();
 }
 
-
-void m(void f)
-{
-    yo();
-    print("hello");
-    f();
-}
-
-m(void f(){ print("F") });
+m(void @(){ print("a"); }, void @(){ print("b"); }, void @(){ print("c"); });
