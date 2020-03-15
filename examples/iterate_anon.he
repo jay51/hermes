@@ -1,0 +1,14 @@
+void yo()
+{
+    print("yo");
+}
+
+
+void m(void f)
+{
+    yo();
+    print("hello");
+    f();
+}
+
+m(void f(){ print("F") });

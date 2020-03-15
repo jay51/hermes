@@ -54,7 +54,7 @@ static char* create_str(const char* str)
 
 static AST_T* _runtime_function_call(runtime_T* runtime, AST_T* fcall, AST_T* fdef)
 {
-    hermes_scope_T* function_definition_body_scope = (hermes_scope_T*) fdef->function_definition_body->scope; 
+    hermes_scope_T* function_definition_body_scope = (hermes_scope_T*) fdef->function_definition_body->scope;
 
     // Clear all existing arguments to prepare for the new definitions
     for (int i = function_definition_body_scope->variable_definitions->size-1; i > 0; i--)
@@ -551,7 +551,8 @@ AST_T* runtime_visit_variable_modifier(runtime_T* runtime, AST_T* node)
 
 AST_T* runtime_visit_function_definition(runtime_T* runtime, AST_T* node)
 {
-    dynamic_list_append(get_scope(runtime, node)->function_definitions, node);
+    hermes_scope_T* scope = get_scope(runtime, node);
+    dynamic_list_append(scope->function_definitions, node);
 
     return node;
 }
@@ -1427,68 +1428,79 @@ AST_T* runtime_visit_iterate(runtime_T* runtime, AST_T* node)
     hermes_scope_T* scope = get_scope(runtime, node);
     AST_T* ast_iterable = runtime_visit(runtime, node->iterate_iterable);
 
-    for (int i = 0; i < scope->function_definitions->size; i++)
+    AST_T* fdef = (void*)0;
+
+    if (node->iterate_function->type == AST_FUNCTION_DEFINITION)
+        fdef = node->iterate_function;
+
+    // lookup for function definition
+    if (fdef == (void*)0)
     {
-        AST_T* fdef = scope->function_definitions->items[i];
-
-        if (strcmp(fdef->function_name, node->iterate_function->variable_name) == 0)
+        for (int i = 0; i < scope->function_definitions->size; i++)
         {
-            if (fdef->fptr != (void*)0)
+            fdef = scope->function_definitions->items[i];
+
+            if (strcmp(fdef->function_name, node->iterate_function->variable_name) == 0)
             {
-                /**
-                 * This is currently not supported, but it would be nice
-                 * to have this working.
-                 *
-                 * TODO: Make this possible?
-                 */
-                printf("Can not iterate with native method `%s`\n", fdef->function_name);
-                exit(1);
-            }
-
-            hermes_scope_T* fdef_body_scope = (hermes_scope_T*) fdef->function_definition_body->scope;
-            char* iterable_varname = ((AST_T*)fdef->function_definition_arguments->items[0])->variable_name;
-            int x = 0;
-
-            // Clear all existing arguments to prepare for the new definitions
-            for (int z = fdef_body_scope->variable_definitions->size-1; z > 0; z--)
-            {
-                dynamic_list_remove(
-                    fdef_body_scope->variable_definitions,
-                    fdef_body_scope->variable_definitions->items[z],
-                    _ast_free
-                );
-            }
-
-            if (ast_iterable->type == AST_STRING)
-            {
-                AST_T* new_variable_def = init_ast(AST_VARIABLE_DEFINITION);
-                new_variable_def->variable_value = init_ast(AST_CHAR);
-                new_variable_def->variable_value->char_value = ast_iterable->string_value[x];
-                new_variable_def->variable_name = iterable_varname;
-                
-                dynamic_list_append(fdef_body_scope->variable_definitions, new_variable_def);
-
-                for (;x < strlen(ast_iterable->string_value); x++)
+                if (fdef->fptr != (void*)0)
                 {
-                    new_variable_def->variable_value->char_value = ast_iterable->string_value[x];
-                    runtime_visit(runtime, fdef->function_definition_body);
+                    /**
+                     * This is currently not supported, but it would be nice
+                     * to have this working.
+                     *
+                     * TODO: Make this possible?
+                     */
+                    printf("Can not iterate with native method `%s`\n", fdef->function_name);
+                    exit(1);
                 }
-            }
-            else
-            if (ast_iterable->type == AST_LIST)
-            {
-                AST_T* new_variable_def = init_ast(AST_VARIABLE_DEFINITION);
-                new_variable_def->variable_value = runtime_visit(runtime, (AST_T*)ast_iterable->list_children->items[x]);
-                new_variable_def->variable_name = iterable_varname;
-                
-                dynamic_list_append(fdef_body_scope->variable_definitions, new_variable_def);
 
-                for (;x < ast_iterable->list_children->size; x++)
-                {
-                    new_variable_def->variable_value = runtime_visit(runtime, (AST_T*)ast_iterable->list_children->items[x]);
-                    runtime_visit(runtime, fdef->function_definition_body);
-                }
+                break;
             }
+        }
+    }
+    
+    hermes_scope_T* fdef_body_scope = (hermes_scope_T*) fdef->function_definition_body->scope;
+    char* iterable_varname = ((AST_T*)fdef->function_definition_arguments->items[0])->variable_name;
+    int x = 0;
+
+    // Clear all existing arguments to prepare for the new definitions
+    for (int z = fdef_body_scope->variable_definitions->size-1; z > 0; z--)
+    {
+        dynamic_list_remove(
+            fdef_body_scope->variable_definitions,
+            fdef_body_scope->variable_definitions->items[z],
+            _ast_free
+        );
+    }
+
+    if (ast_iterable->type == AST_STRING)
+    {
+        AST_T* new_variable_def = init_ast(AST_VARIABLE_DEFINITION);
+        new_variable_def->variable_value = init_ast(AST_CHAR);
+        new_variable_def->variable_value->char_value = ast_iterable->string_value[x];
+        new_variable_def->variable_name = iterable_varname;
+        
+        dynamic_list_append(fdef_body_scope->variable_definitions, new_variable_def);
+
+        for (;x < strlen(ast_iterable->string_value); x++)
+        {
+            new_variable_def->variable_value->char_value = ast_iterable->string_value[x];
+            runtime_visit(runtime, fdef->function_definition_body);
+        }
+    }
+    else
+    if (ast_iterable->type == AST_LIST)
+    {
+        AST_T* new_variable_def = init_ast(AST_VARIABLE_DEFINITION);
+        new_variable_def->variable_value = runtime_visit(runtime, (AST_T*)ast_iterable->list_children->items[x]);
+        new_variable_def->variable_name = iterable_varname;
+        
+        dynamic_list_append(fdef_body_scope->variable_definitions, new_variable_def);
+
+        for (;x < ast_iterable->list_children->size; x++)
+        {
+            new_variable_def->variable_value = runtime_visit(runtime, (AST_T*)ast_iterable->list_children->items[x]);
+            runtime_visit(runtime, fdef->function_definition_body);
         }
     }
 

@@ -11,6 +11,7 @@ typedef struct TOKEN_STRUCT
         TOKEN_NUMBER_VALUE,
         TOKEN_BOOLEAN_VALUE,
         TOKEN_ID,
+        TOKEN_ANON_ID,
         TOKEN_LBRACE,
         TOKEN_RBRACE,
         TOKEN_LBRACKET,
