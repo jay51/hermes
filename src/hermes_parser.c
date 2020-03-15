@@ -57,6 +57,22 @@ static AST_T* as_object_child(AST_T* ast, AST_T* object)
     return ast;
 }
 
+static unsigned int is_data_type(char* token_value)
+{
+    return (
+        strcmp(token_value, DATA_TYPE_VOID) == 0 ||
+        strcmp(token_value, DATA_TYPE_INT) == 0 ||
+        strcmp(token_value, DATA_TYPE_STRING) == 0 ||
+        strcmp(token_value, DATA_TYPE_CHAR) == 0 ||
+        strcmp(token_value, DATA_TYPE_FLOAT) == 0 ||
+        strcmp(token_value, DATA_TYPE_BOOLEAN) == 0 ||
+        strcmp(token_value, DATA_TYPE_OBJECT) == 0 ||
+        strcmp(token_value, DATA_TYPE_ENUM) == 0 ||
+        strcmp(token_value, DATA_TYPE_LIST) == 0 ||
+        strcmp(token_value, DATA_TYPE_SOURCE) == 0
+    );
+}
+
 AST_T* hermes_parser_parse(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     return hermes_parser_parse_statements(hermes_parser, scope);
@@ -628,8 +644,19 @@ AST_T* hermes_parser_parse_iterate(hermes_parser_T* hermes_parser, hermes_scope_
     hermes_parser_eat(hermes_parser, TOKEN_ID);
     AST_T* ast_var = hermes_parser_parse_variable(hermes_parser, scope); // variable
     hermes_parser_eat(hermes_parser, TOKEN_ID); // with
-    hermes_parser_eat(hermes_parser, TOKEN_ID);
-    AST_T* ast_fname = hermes_parser_parse_variable(hermes_parser, scope); // function name
+    
+
+    AST_T* ast_fname = (void*)0;
+
+    if (is_data_type(hermes_parser->current_token->value))
+    {
+        ast_fname = hermes_parser_parse_function_definition(hermes_parser, scope);
+    }
+    else
+    {
+        hermes_parser_eat(hermes_parser, TOKEN_ID);
+        ast_fname = hermes_parser_parse_variable(hermes_parser, scope); // function name
+    }
 
     AST_T* ast_iterate = init_ast(AST_ITERATE);
     ast_iterate->iterate_iterable = ast_var;
@@ -676,12 +703,22 @@ AST_T* hermes_parser_parse_function_call(hermes_parser_T* hermes_parser, hermes_
 
     if (hermes_parser->current_token->type != TOKEN_RPAREN)
     {
-        dynamic_list_append(ast_function_call->function_call_arguments, hermes_parser_parse_expr(hermes_parser, scope));
+        AST_T* ast_expr = hermes_parser_parse_expr(hermes_parser, scope);
+
+        if (ast_expr->type == AST_FUNCTION_DEFINITION)
+            ast_expr->scope = (struct hermes_scope_T*) init_hermes_scope(0);
+
+        dynamic_list_append(ast_function_call->function_call_arguments, ast_expr);
 
         while (hermes_parser->current_token->type == TOKEN_COMMA)
         {
             hermes_parser_eat(hermes_parser, TOKEN_COMMA);
-            dynamic_list_append(ast_function_call->function_call_arguments, hermes_parser_parse_expr(hermes_parser, scope));
+            ast_expr = hermes_parser_parse_expr(hermes_parser, scope);
+            
+            if (ast_expr->type == AST_FUNCTION_DEFINITION)
+                ast_expr->scope = (struct hermes_scope_T*) init_hermes_scope(0);
+
+            dynamic_list_append(ast_function_call->function_call_arguments, ast_expr);
         }
     }
 
@@ -701,7 +738,11 @@ AST_T* hermes_parser_parse_function_definition(hermes_parser_T* hermes_parser, h
     {
         function_name = calloc(strlen(hermes_parser->current_token->value) + 1, sizeof(char));
         strcpy(function_name, hermes_parser->current_token->value);
-        hermes_parser_eat(hermes_parser, TOKEN_ID);
+
+        if (hermes_parser->current_token->type == TOKEN_ID)
+            hermes_parser_eat(hermes_parser, TOKEN_ID);
+        else
+            hermes_parser_eat(hermes_parser, TOKEN_ANON_ID);
     }
     else
     {
@@ -724,12 +765,12 @@ AST_T* hermes_parser_parse_function_definition(hermes_parser_T* hermes_parser, h
 
         if (hermes_parser->current_token->type != TOKEN_RPAREN)
         {
-            dynamic_list_append(ast_function_definition->function_definition_arguments, hermes_parser_parse_expr(hermes_parser, new_scope));
+            dynamic_list_append(ast_function_definition->function_definition_arguments, hermes_parser_parse_expr(hermes_parser, scope));
 
             while (hermes_parser->current_token->type == TOKEN_COMMA)
             {
                 hermes_parser_eat(hermes_parser, TOKEN_COMMA);
-                dynamic_list_append(ast_function_definition->function_definition_arguments, hermes_parser_parse_expr(hermes_parser, new_scope));
+                dynamic_list_append(ast_function_definition->function_definition_arguments, hermes_parser_parse_expr(hermes_parser, scope));
             }
         } 
 
@@ -737,6 +778,10 @@ AST_T* hermes_parser_parse_function_definition(hermes_parser_T* hermes_parser, h
 
         if (hermes_parser->current_token->type == TOKEN_EQUALS)
         {
+            /**
+             * Parsing compositions
+             */
+
             hermes_parser_eat(hermes_parser, TOKEN_EQUALS);
             hermes_parser_eat(hermes_parser, TOKEN_ID);
 

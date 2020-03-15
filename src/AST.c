@@ -562,8 +562,8 @@ char* ast_function_definition_to_string(AST_T* ast)
 {
     // TODO concat function definition type to the beginning of the str.
     const char* template = "%s (%d)";
-    char* str = calloc(strlen(template) + strlen(ast->variable_name) + 128, sizeof(char));
-    sprintf(str, template, ast->variable_name, (int)ast->function_definition_arguments->size);
+    char* str = calloc(strlen(template) + strlen(ast->function_name) + 128, sizeof(char));
+    sprintf(str, template, ast->function_name, (int)ast->function_definition_arguments->size);
 
     return str;
 }
