@@ -534,7 +534,7 @@ char* ast_to_string(AST_T* ast)
         case AST_FUNCTION_DEFINITION: return ast_function_definition_to_string(ast); break;
         case AST_FUNCTION_CALL: return ast_function_call_to_string(ast); break;
         case AST_NULL: return ast_null_to_string(ast); break;
-        case AST_STRING: return ast->string_value; break;
+        case AST_STRING: { char* str = calloc(strlen(ast->string_value) + 1, sizeof(char)); strcpy(str, ast->string_value); return str; } break;
         case AST_CHAR: return hermes_char_to_string(ast->char_value); break;
         case AST_FLOAT: return ast_float_to_string(ast); break;
         case AST_LIST: return ast_list_to_string(ast); break;
