@@ -647,8 +647,7 @@ AST_T* hermes_parser_parse_new(hermes_parser_T* hermes_parser, hermes_scope_T* s
 AST_T* hermes_parser_parse_iterate(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     hermes_parser_eat(hermes_parser, TOKEN_ID); // iterate
-    hermes_parser_eat(hermes_parser, TOKEN_ID);
-    AST_T* ast_var = hermes_parser_parse_variable(hermes_parser, scope); // variable
+    AST_T* ast_var = hermes_parser_parse_expr(hermes_parser, scope); // variable
     hermes_parser_eat(hermes_parser, TOKEN_ID); // with
     
 
