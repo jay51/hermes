@@ -683,7 +683,7 @@ AST_T* runtime_function_lookup(runtime_T* runtime, hermes_scope_T* scope, AST_T*
 }
 
 AST_T* runtime_visit_function_call(runtime_T* runtime, AST_T* node)
-{    
+{
     hermes_scope_T* scope = get_scope(runtime, node);
 
     // TODO: put this in the hermes_builtins.c,
