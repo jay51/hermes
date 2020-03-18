@@ -1106,6 +1106,8 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
 
                 return return_value;
             }
+            // TODO: implement left == string && right == int
+            // TODO: implement right == int && left == string
         } break;
         case TOKEN_MINUS: {
             if (left->type == AST_INTEGER && right->type == AST_INTEGER)
