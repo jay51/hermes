@@ -788,9 +788,18 @@ AST_T* hermes_parser_parse_function_definition(hermes_parser_T* hermes_parser, h
              */
 
             hermes_parser_eat(hermes_parser, TOKEN_EQUALS);
-            hermes_parser_eat(hermes_parser, TOKEN_ID);
 
-            AST_T* child_def = hermes_parser_parse_variable(hermes_parser, scope);
+            AST_T* child_def = (void*)0;
+
+            if (is_data_type(hermes_parser->current_token->value))
+            {
+                child_def = hermes_parser_parse_function_definition(hermes_parser, scope);
+            }
+            else
+            {
+                hermes_parser_eat(hermes_parser, TOKEN_ID);
+                child_def = hermes_parser_parse_variable(hermes_parser, scope);
+            }
 
             child_def->scope = (struct hermes_scope_T*) new_scope;
             dynamic_list_append(ast_function_definition->composition_children, child_def);
@@ -798,9 +807,20 @@ AST_T* hermes_parser_parse_function_definition(hermes_parser_T* hermes_parser, h
             while (hermes_parser->current_token->type == TOKEN_COMMA)
             {
                 hermes_parser_eat(hermes_parser, TOKEN_COMMA);
+                
 
-                hermes_parser_eat(hermes_parser, TOKEN_ID);
-                child_def = hermes_parser_parse_variable(hermes_parser, scope);
+                if (is_data_type(hermes_parser->current_token->value))
+                {
+                    child_def = hermes_parser_parse_function_definition(hermes_parser, scope);
+                }
+                else
+                {
+                    hermes_parser_eat(hermes_parser, TOKEN_ID);
+                    child_def = hermes_parser_parse_variable(hermes_parser, scope);
+                }
+
+                //hermes_parser_eat(hermes_parser, TOKEN_ID);
+                //child_def = hermes_parser_parse_variable(hermes_parser, scope);
                 child_def->scope = (struct hermes_scope_T*) new_scope;
                 dynamic_list_append(ast_function_definition->composition_children, child_def);
             }
