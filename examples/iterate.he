@@ -1,16 +1,10 @@
-void char_iterator(char c)
+void iterate_items(string item)
 {
-    print(c);
+    print(item);
 }
 
-void list_iterator(string name)
-{
-    print(name);
-}
+list fruits = ["pear", "banana", "apple"];
 
-string x = "john doe";
-list y = ["john", "sarah", "hannah"];
-
-iterate x with char_iterator;
-
-iterate y with list_iterator;
+iterate fruits with void @(string item) {
+    print(item);    
+};

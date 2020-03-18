@@ -587,8 +587,8 @@ AST_T* runtime_function_lookup(runtime_T* runtime, hermes_scope_T* scope, AST_T*
     {
         for (int i = 0; i < scope->function_definitions->size; i++)
         {
-            function_definition = (AST_T*) scope->function_definitions->items[i];  
-
+            function_definition = (AST_T*) scope->function_definitions->items[i];
+            
             if (strcmp(function_definition->function_name, node->function_call_name) == 0)
             {
                 break; 
@@ -655,15 +655,30 @@ AST_T* runtime_function_lookup(runtime_T* runtime, hermes_scope_T* scope, AST_T*
         for (int i = 0; i < function_definition->composition_children->size; i++)
         {
             AST_T* comp_child = (AST_T*) function_definition->composition_children->items[i];
-            AST_T* fcall = init_ast(AST_FUNCTION_CALL);
-            fcall->function_call_name = comp_child->variable_name;
 
-            if (i == 0)
-                fcall->function_call_arguments = node->function_call_arguments;
+            AST_T* result = (void*) 0;
+
+            if (comp_child->type == AST_FUNCTION_DEFINITION)
+            {
+                if (i == 0)
+                    node->function_call_arguments = node->function_call_arguments;
+                else
+                    node->function_call_arguments = call_arguments;
+
+                result = _runtime_function_call(runtime, node, comp_child);
+            }
             else
-                fcall->function_call_arguments = call_arguments;
+            {
+                AST_T* fcall = init_ast(AST_FUNCTION_CALL);
+                fcall->function_call_name = comp_child->variable_name;
 
-            AST_T* result = runtime_function_lookup(runtime, scope, fcall);
+                if (i == 0)
+                    fcall->function_call_arguments = node->function_call_arguments;
+                else
+                    fcall->function_call_arguments = call_arguments;
+
+                result = runtime_function_lookup(runtime, scope, fcall);
+            }
 
             switch (result->type)
             {
