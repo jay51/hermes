@@ -49,6 +49,17 @@ void hermes_parser_syntax_error(hermes_parser_T* hermes_parser)
     exit(1);
 }
 
+void hermes_parser_unexpected_token_error(hermes_parser_T* hermes_parser, int token_type)
+{
+    printf(
+        "[Line %d] Unexpected token `%s`, was expecting `%d`.\n",
+        hermes_parser->hermes_lexer->line_n,
+        hermes_parser->current_token->value,
+        token_type
+    );
+    exit(1);
+}
+
 static AST_T* as_object_child(AST_T* ast, AST_T* object)
 {
     ast->is_object_child = 1;
@@ -82,13 +93,7 @@ AST_T* hermes_parser_eat(hermes_parser_T* hermes_parser, int token_type)
 {
     if (hermes_parser->current_token->type != token_type)
     {
-        printf(
-            "[Line %d] Unexpected token `%s`, was expecting `%d`.\n",
-            hermes_parser->hermes_lexer->line_n,
-            hermes_parser->current_token->value,
-            token_type
-        );
-        exit(1);
+        hermes_parser_unexpected_token_error(hermes_parser, token_type);
     }
     else if (hermes_parser->current_token->type == token_type)
     {
@@ -181,6 +186,7 @@ AST_T* hermes_parser_parse_statement(hermes_parser_T* hermes_parser, hermes_scop
                 return a;
         } break;
         case TOKEN_NUMBER_VALUE: case TOKEN_STRING_VALUE: case TOKEN_CHAR_VALUE: case TOKEN_FLOAT_VALUE: case TOKEN_INTEGER_VALUE: return hermes_parser_parse_expr(hermes_parser, scope); break;
+        case TOKEN_ANON_ID: { printf("[Line %d] Unexpected token `%s`\n", hermes_parser->hermes_lexer->line_n, hermes_parser->current_token->value); exit(1); } break;
         default: return init_ast(AST_NOOP); break;
     }
 
