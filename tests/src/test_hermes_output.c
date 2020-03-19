@@ -1,0 +1,45 @@
+#include "include/main.h"
+#include "include/utils.h"
+#include "../../src/include/hermes_parser.h"
+#include "../../src/include/hermes_runtime.h"
+#include <string.h>
+
+
+
+static char* getstdout(const char* source)
+{
+    hermes_lexer_T* hermes_lexer = init_hermes_lexer(
+        get_file_contents(source)
+    );
+    
+    hermes_parser_T* parser = init_hermes_parser(hermes_lexer);
+    AST_T* node = hermes_parser_parse(parser, (void*) 0);
+    runtime_T* runtime = init_runtime();
+    runtime_visit(runtime, node);
+    assert_true(runtime != NULL);
+
+    // TODO: resolve and find out why this is allocated when it shouldnt.
+    //assert_true(runtime->stdout_buffer != (void*)0);
+
+    char* buffer = calloc(strlen(runtime->stdout_buffer) + 1, sizeof(char));
+    strcpy(buffer, runtime->stdout_buffer);
+    
+    // TODO free lexer, parser & runtime here...
+    //
+    /*hermes_lexer_free(hermes_lexer);
+    free(runtime->stdout_buffer);
+    free(runtime);*/
+
+    return buffer;
+}
+
+void test_hermes_output(void** state)
+{
+    assert_true(strcmp(getstdout("sources/output/hello_world.he"), "hello world\n") == 0);
+    assert_true(strcmp(getstdout("sources/output/print_list.he"), "[ list ]\n") == 0);
+    assert_true(strcmp(getstdout("sources/output/print_list_iterate.he"), "pear\nbanana\napple\n") == 0);
+    assert_true(strcmp(getstdout("sources/output/null.he"), "1\n1\n") == 0);
+    assert_true(strcmp(getstdout("sources/output/fopen.he"), "hello world\n\n") == 0);
+    assert_true(strcmp(getstdout("sources/output/compositions.he"), "11\n") == 0);
+    assert_true(strcmp(getstdout("sources/output/char.he"), "g\n") == 0);
+}

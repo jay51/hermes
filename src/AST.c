@@ -547,6 +547,7 @@ char* ast_to_string(AST_T* ast)
         case AST_NOOP: return 0; break;
         case AST_BREAK: return 0; break;
         case AST_RETURN: return ast_to_string(ast->return_value); break;
+        case AST_ENUM: return ast_enum_to_string(ast); break;
         default: printf("Could not convert AST of type `%d` to string.\n", ast->type); return (void*)0; break;
     }
 
@@ -649,6 +650,14 @@ char* ast_binop_to_string(AST_T* ast)
     strcat(str, right);
     free(left);
     free(right);
+
+    return str;
+}
+
+char* ast_enum_to_string(AST_T* ast)
+{
+    char* str = calloc(strlen(ast->variable_name) + 1, sizeof(char));
+    strcpy(str, ast->variable_name);
 
     return str;
 }
