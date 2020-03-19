@@ -96,6 +96,7 @@ runtime_T* init_runtime()
     runtime_T* runtime = calloc(1, sizeof(struct RUNTIME_STRUCT));
     runtime->scope = init_hermes_scope(1);
     runtime->list_methods = init_dynamic_list(sizeof(struct AST_STRUCT*));
+    runtime->stdout_buffer = (void*)0;
 
     INITIALIZED_NOOP = init_ast(AST_NOOP);
 
@@ -718,6 +719,29 @@ AST_T* runtime_visit_function_call(runtime_T* runtime, AST_T* node)
         runtime_visit(runtime, fdef);
 
         return fdef;
+    }
+
+    if (strcmp(node->function_call_name, "stdoutbuffer") == 0)
+    {
+        for (int i = 0; i < node->function_call_arguments->size; i++)
+        {
+            AST_T* ast_arg = (AST_T*) runtime_visit(runtime, node->function_call_arguments->items[i]);
+            char* str = ast_to_string(ast_arg);
+
+            if (str == (void*)0)
+            {
+                hermes_runtime_buffer_stdout(runtime, "(void*)0\n");
+            }
+            else
+            {
+                str = realloc(str, (strlen(str) + 2) * sizeof(char));
+                strcat(str, "\n");
+                hermes_runtime_buffer_stdout(runtime, str);
+                free(str);
+            }
+        }
+
+        return INITIALIZED_NOOP;
     }
 
     if (strcmp(node->function_call_name, "free") == 0)
@@ -1616,5 +1640,22 @@ void runtime_expect_args(dynamic_list_T* in_args, int argc, int args[])
     {
         printf("Got unexpected arguments, terminating.\n");
         exit(1);
+    }
+}
+
+void hermes_runtime_buffer_stdout(runtime_T* runtime, const char* buffer)
+{
+    if (runtime->stdout_buffer == (void*)0)
+    {
+        runtime->stdout_buffer = calloc(strlen(buffer) + 1, sizeof(char));
+        strcpy(runtime->stdout_buffer, buffer);
+    }
+    else
+    {
+        runtime->stdout_buffer = realloc(
+            runtime->stdout_buffer,
+            (strlen(runtime->stdout_buffer) + strlen(buffer) + 1) * sizeof(char)
+        );
+        strcat(runtime->stdout_buffer, buffer);
     }
 }

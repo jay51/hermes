@@ -2,6 +2,7 @@
 #include "include/test_hermes_lexer.h"
 #include "include/test_hermes_parser.h"
 #include "include/test_hermes_runtime.h"
+#include "include/test_hermes_output.h"
 
 
 int main(int argc, char* argv[])
@@ -16,7 +17,8 @@ int main(int argc, char* argv[])
         cmocka_unit_test(test_hermes_runtime_list_add),
         cmocka_unit_test(test_hermes_runtime_this),
         cmocka_unit_test(test_hermes_runtime_assert),
-        cmocka_unit_test(test_hermes_runtime_to_string)
+        cmocka_unit_test(test_hermes_runtime_to_string),
+        cmocka_unit_test(test_hermes_output)
     };
 
     int count_fail_tests =

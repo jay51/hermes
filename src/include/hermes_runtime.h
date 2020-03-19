@@ -7,6 +7,7 @@ typedef struct RUNTIME_STRUCT
 {
     hermes_scope_T* scope;
     dynamic_list_T* list_methods;
+    char* stdout_buffer;
 } runtime_T;
 
 runtime_T* init_runtime();
@@ -70,6 +71,8 @@ AST_T* runtime_visit_iterate(runtime_T* runtime, AST_T* node);
 AST_T* runtime_visit_assert(runtime_T* runtime, AST_T* node);
 
 hermes_scope_T* get_scope(runtime_T* runtime, AST_T* node);
+
+void hermes_runtime_buffer_stdout(runtime_T* runtime, const char* buffer);
 
 void runtime_expect_args(dynamic_list_T* in_args, int argc, int args[]);
 #endif

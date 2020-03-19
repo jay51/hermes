@@ -129,5 +129,6 @@ char* ast_type_to_string(AST_T* ast);
 char* ast_attribute_access_to_string(AST_T* ast);
 char* ast_list_access_to_string(AST_T* ast);
 char* ast_binop_to_string(AST_T* ast);
+char* ast_enum_to_string(AST_T* ast);
 
 #endif
