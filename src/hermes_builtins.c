@@ -370,3 +370,16 @@ AST_T* hermes_builtin_function_char_to_bin(AST_T* self, dynamic_list_T* args)
 
     return ast_string;
 }
+
+AST_T* hermes_builtin_function_char_to_dec(AST_T* self, dynamic_list_T* args)
+{
+    runtime_expect_args(args, 1, (int[]) {AST_CHAR});
+
+    AST_T* ast_char = args->items[0];
+    char c = ast_char->char_value;
+
+    AST_T* ast_int = init_ast(AST_INTEGER);
+    ast_int->int_value = (int) c;
+
+    return ast_int;
+}
