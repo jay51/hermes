@@ -418,3 +418,19 @@ AST_T* hermes_builtin_function_char_to_dec(AST_T* self, dynamic_list_T* args)
 
     return ast_int;
 }
+
+AST_T* hermes_builtin_function_char_to_hex(AST_T* self, dynamic_list_T* args)
+{
+    runtime_expect_args(args, 1, (int[]) {AST_CHAR});
+
+    AST_T* ast_char = args->items[0];
+    char c = ast_char->char_value;
+
+    char* str = calloc(8, sizeof(char));
+    sprintf(str, "%x", c);
+
+    AST_T* ast_string = init_ast(AST_STRING);
+    ast_string->string_value = str;
+
+    return ast_string;
+}
