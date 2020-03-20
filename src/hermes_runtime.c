@@ -152,6 +152,11 @@ runtime_T* init_runtime()
     CHAR_TO_BIN_FUNCTION_DEFINITION->fptr = hermes_builtin_function_char_to_bin;
     dynamic_list_append(runtime->scope->function_definitions, CHAR_TO_BIN_FUNCTION_DEFINITION);
 
+    AST_T* CHAR_TO_DEC_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);
+    CHAR_TO_DEC_FUNCTION_DEFINITION->function_name = create_str("char_to_dec");
+    CHAR_TO_DEC_FUNCTION_DEFINITION->fptr = hermes_builtin_function_char_to_dec;
+    dynamic_list_append(runtime->scope->function_definitions, CHAR_TO_DEC_FUNCTION_DEFINITION);
+
     // LIST FUNCTIONS
 
     AST_T* LIST_ADD_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);
