@@ -296,7 +296,7 @@ void hermes_lexer_expect_char(hermes_lexer_T* hermes_lexer, char c)
 {
     if (hermes_lexer->current_char != c)
     {
-        printf("Lexer expected the current char to be `%c`, but it was `%c`.", c, hermes_lexer->current_char);
+        printf("Error: [Line %d] Lexer expected the current char to be `%c`, but it was `%c`.", c, hermes_lexer->current_char, hermes_lexer->line_n);
         exit(1);
     }
 }
@@ -399,7 +399,7 @@ token_T* hermes_lexer_collect_char(hermes_lexer_T* hermes_lexer)
     {
         if (c > 1)
         {
-            printf("Chars can only contain one character\n");
+            printf("Error: [Line %d] Chars can only contain one character\n", hermes_lexer->line_n);
             exit(1);
         }
 
