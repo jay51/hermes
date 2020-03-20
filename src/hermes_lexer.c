@@ -363,6 +363,11 @@ token_T* hermes_lexer_collect_string(hermes_lexer_T* hermes_lexer)
 
     while (hermes_lexer->current_char != '"')
     {
+        if (hermes_lexer->current_char == '\0')
+        {
+            printf("[Line %d] Missing closing quotation mark\n", hermes_lexer->line_n); exit(1);
+        }
+
         char* strchar = hermes_lexer_current_charstr(hermes_lexer);
         buffer = realloc(buffer, strlen(buffer) + 2);
         strcat(buffer, strchar);
