@@ -2,6 +2,7 @@
 #include "include/hermes_runtime.h"
 #include "include/hermes_lexer.h"
 #include "include/hermes_parser.h"
+#include "include/string_utils.h"
 #include "include/io.h"
 #include <string.h>
 
@@ -323,4 +324,49 @@ AST_T* hermes_builtin_function_input(AST_T* self, dynamic_list_T* args)
     ast->string_value = str;
 
     return ast;
+}
+
+
+static char* my_itoa(int num, char *str)
+{
+    if(str == NULL)
+        return NULL;
+
+    sprintf(str, "%d", num);
+    return str;
+}
+
+AST_T* hermes_builtin_function_char_to_bin(AST_T* self, dynamic_list_T* args)
+{
+    runtime_expect_args(args, 1, (int[]) {AST_CHAR});
+
+    AST_T* ast_char = args->items[0];
+    char c = ast_char->char_value;
+
+    char* tmp_buffer = calloc(8, sizeof(char));
+    int i;
+    for(i=0;i<7;i++)
+    {
+        char* str = calloc(2, sizeof(char));
+        my_itoa(c%2, str);
+        strcat(tmp_buffer, str);
+        c=c/2;      
+    }
+
+    char* output = calloc(8, sizeof(char));
+
+    for (int i = 8; i >= 0; i--)
+    {
+        char charv = tmp_buffer[i];
+        char* str = hermes_char_to_string(charv);
+        strcat(output, str);
+    }
+
+    free(tmp_buffer);
+
+    AST_T* ast_string = init_ast(AST_STRING);
+    ast_string->string_value = calloc(strlen(output) + 1, sizeof(char));
+    strcpy(ast_string->string_value, output);
+
+    return ast_string;
 }
