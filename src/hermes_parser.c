@@ -165,6 +165,7 @@ AST_T* hermes_parser_parse_statement(hermes_parser_T* hermes_parser, hermes_scop
             {
                 hermes_parser_eat(hermes_parser, TOKEN_DOT);
                 AST_T* ast = init_ast(AST_ATTRIBUTE_ACCESS);
+				ast->line_n = hermes_parser->hermes_lexer->line_n;
                 ast->binop_left = a;
                 ast->binop_right = hermes_parser_parse_expr(hermes_parser, scope);
 
@@ -174,6 +175,7 @@ AST_T* hermes_parser_parse_statement(hermes_parser_T* hermes_parser, hermes_scop
             while (hermes_parser->current_token->type == TOKEN_LBRACKET)
             {
                 AST_T* ast_list_access = init_ast(AST_LIST_ACCESS);
+				ast_list_access->line_n = hermes_parser->hermes_lexer->line_n;
                 ast_list_access->binop_left = a;
                 hermes_parser_eat(hermes_parser, TOKEN_LBRACKET);
                 ast_list_access->list_access_pointer = hermes_parser_parse_expr(hermes_parser, scope);
@@ -196,6 +198,7 @@ AST_T* hermes_parser_parse_statement(hermes_parser_T* hermes_parser, hermes_scop
 AST_T* hermes_parser_parse_statements(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     AST_T* compound = init_ast(AST_COMPOUND);
+	compound->line_n = hermes_parser->hermes_lexer->line_n;
     compound->scope = (struct hermes_scope_T*) scope;
 
     AST_T* statement = hermes_parser_parse_statement(hermes_parser, scope);
@@ -218,6 +221,7 @@ AST_T* hermes_parser_parse_statements(hermes_parser_T* hermes_parser, hermes_sco
 AST_T* hermes_parser_parse_type(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     AST_T* ast_type = init_ast(AST_TYPE);
+	ast_type->line_n = hermes_parser->hermes_lexer->line_n;
     ast_type->scope = (struct hermes_scope_T*) scope;
     ast_type->type_value = calloc(strlen(hermes_parser->current_token->value) + 1, sizeof(char));
     strcpy(ast_type->type_value, hermes_parser->current_token->value);
@@ -237,6 +241,7 @@ AST_T* hermes_parser_parse_attribute_access(hermes_parser_T* hermes_parser, herm
 AST_T* hermes_parser_parse_float(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     AST_T* ast_float = init_ast(AST_FLOAT);
+	ast_float->line_n = hermes_parser->hermes_lexer->line_n;
     ast_float->scope = (struct hermes_scope_T*) scope;
     ast_float->float_value = (float) atof(hermes_parser->current_token->value);
 
@@ -248,6 +253,7 @@ AST_T* hermes_parser_parse_float(hermes_parser_T* hermes_parser, hermes_scope_T*
 AST_T* hermes_parser_parse_string(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     AST_T* ast_string = init_ast(AST_STRING);
+	ast_string->line_n = hermes_parser->hermes_lexer->line_n;
     ast_string->scope = (struct hermes_scope_T*) scope;
     ast_string->string_value = calloc(strlen(hermes_parser->current_token->value) + 1, sizeof(char));
     strcpy(ast_string->string_value, hermes_parser->current_token->value);
@@ -260,6 +266,7 @@ AST_T* hermes_parser_parse_string(hermes_parser_T* hermes_parser, hermes_scope_T
 AST_T* hermes_parser_parse_char(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     AST_T* ast_string = init_ast(AST_CHAR);
+	ast_string->line_n = hermes_parser->hermes_lexer->line_n;
     ast_string->scope = (struct hermes_scope_T*) scope;
     ast_string->char_value = hermes_parser->current_token->value[0];
 
@@ -271,6 +278,7 @@ AST_T* hermes_parser_parse_char(hermes_parser_T* hermes_parser, hermes_scope_T* 
 AST_T* hermes_parser_parse_integer(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     AST_T* ast_integer = init_ast(AST_INTEGER);
+	ast_integer->line_n = hermes_parser->hermes_lexer->line_n;
     ast_integer->scope = (struct hermes_scope_T*) scope;
     ast_integer->int_value = atoi(hermes_parser->current_token->value);
 
@@ -287,6 +295,7 @@ AST_T* hermes_parser_parse_array(hermes_parser_T* hermes_parser, hermes_scope_T*
 AST_T* hermes_parser_parse_boolean(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     AST_T* ast_boolean = init_ast(AST_BOOLEAN);
+	ast_boolean->line_n = hermes_parser->hermes_lexer->line_n;
     ast_boolean->scope = (struct hermes_scope_T*) scope;
     
     if (strcmp(hermes_parser->current_token->value, "false") == 0)
@@ -304,6 +313,7 @@ AST_T* hermes_parser_parse_boolean(hermes_parser_T* hermes_parser, hermes_scope_
 AST_T* hermes_parser_parse_null(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     AST_T* ast_null = init_ast(AST_NULL);
+	ast_null->line_n = hermes_parser->hermes_lexer->line_n;
     ast_null->scope = (struct hermes_scope_T*) scope;
 
     hermes_parser_eat(hermes_parser, TOKEN_ID);
@@ -314,6 +324,7 @@ AST_T* hermes_parser_parse_null(hermes_parser_T* hermes_parser, hermes_scope_T* 
 AST_T* hermes_parser_parse_variable(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     AST_T* ast_variable = init_ast(AST_VARIABLE);
+	ast_variable->line_n = hermes_parser->hermes_lexer->line_n;
     ast_variable->scope = (struct hermes_scope_T*) scope;
     ast_variable->variable_name = calloc(strlen(hermes_parser->prev_token->value) + 1, sizeof(char));
     strcpy(ast_variable->variable_name, hermes_parser->prev_token->value);
@@ -322,6 +333,7 @@ AST_T* hermes_parser_parse_variable(hermes_parser_T* hermes_parser, hermes_scope
     {
         hermes_parser_eat(hermes_parser, TOKEN_EQUALS);
         AST_T* ast_assign = init_ast(AST_VARIABLE_ASSIGNMENT);
+		ast_assign->line_n = hermes_parser->hermes_lexer->line_n;
         ast_assign->variable_assignment_left = ast_variable;
         ast_assign->variable_value = hermes_parser_parse_expr(hermes_parser, scope);
         ast_assign->scope = (struct hermes_scope_T*) scope;
@@ -339,6 +351,7 @@ AST_T* hermes_parser_parse_variable(hermes_parser_T* hermes_parser, hermes_scope
 
         hermes_parser_eat(hermes_parser, type);
         AST_T* ast_variable_modifier = init_ast(AST_VARIABLE_MODIFIER);
+		ast_variable_modifier->line_n = hermes_parser->hermes_lexer->line_n;
         ast_variable_modifier->binop_left = ast_variable;
         ast_variable_modifier->binop_right = hermes_parser_parse_expr(hermes_parser, scope);
         ast_variable_modifier->binop_operator = type;
@@ -353,6 +366,7 @@ AST_T* hermes_parser_parse_variable(hermes_parser_T* hermes_parser, hermes_scope
 AST_T* hermes_parser_parse_object(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     AST_T* ast_object = init_ast(AST_OBJECT);
+	ast_object->line_n = hermes_parser->hermes_lexer->line_n;
     ast_object->scope = (struct hermes_scope_T*) scope;
     ast_object->object_children = init_dynamic_list(sizeof(struct AST_STRUCT));
     hermes_scope_T* new_scope = init_hermes_scope(0);
@@ -385,6 +399,7 @@ AST_T* hermes_parser_parse_object(hermes_parser_T* hermes_parser, hermes_scope_T
 AST_T* hermes_parser_parse_enum(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     AST_T* ast_enum = init_ast(AST_ENUM);
+	ast_enum->line_n = hermes_parser->hermes_lexer->line_n;
     ast_enum->scope = (struct hermes_scope_T*) scope;
     ast_enum->enum_children = init_dynamic_list(sizeof(struct AST_STRUCT));
     hermes_scope_T* new_scope = init_hermes_scope(0);
@@ -424,6 +439,7 @@ AST_T* hermes_parser_parse_list(hermes_parser_T* hermes_parser, hermes_scope_T* 
 {
     hermes_parser_eat(hermes_parser, TOKEN_LBRACKET);
     AST_T* ast_list = init_ast(AST_LIST);
+	ast_list->line_n = hermes_parser->hermes_lexer->line_n;
     ast_list->scope = (struct hermes_scope_T*) scope;
     ast_list->list_children = init_dynamic_list(sizeof(struct AST_STRUCT));
 
@@ -470,6 +486,7 @@ AST_T* hermes_parser_parse_factor(hermes_parser_T* hermes_parser, hermes_scope_T
         {
             hermes_parser_eat(hermes_parser, TOKEN_DOT);
             AST_T* ast = init_ast(AST_ATTRIBUTE_ACCESS);
+			ast->line_n = hermes_parser->hermes_lexer->line_n;
             ast->binop_left = a;
             ast->binop_right = hermes_parser_parse_factor(hermes_parser, scope);
 
@@ -479,6 +496,7 @@ AST_T* hermes_parser_parse_factor(hermes_parser_T* hermes_parser, hermes_scope_T
         while (hermes_parser->current_token->type == TOKEN_LBRACKET)
         {
             AST_T* ast_list_access = init_ast(AST_LIST_ACCESS);
+			ast_list_access->line_n = hermes_parser->hermes_lexer->line_n;
             ast_list_access->binop_left = a;
             hermes_parser_eat(hermes_parser, TOKEN_LBRACKET);
             ast_list_access->list_access_pointer = hermes_parser_parse_expr(hermes_parser, scope);
@@ -548,6 +566,7 @@ AST_T* hermes_parser_parse_term(hermes_parser_T* hermes_parser, hermes_scope_T* 
         hermes_parser_eat(hermes_parser, hermes_parser->current_token->type);
 
         ast_binop = init_ast(AST_BINOP);
+		ast_binop->line_n = hermes_parser->hermes_lexer->line_n;
         
         ast_binop->binop_left = node;
         ast_binop->binop_operator = binop_operator;
@@ -573,6 +592,7 @@ AST_T* hermes_parser_parse_expr(hermes_parser_T* hermes_parser, hermes_scope_T* 
         hermes_parser_eat(hermes_parser, hermes_parser->current_token->type);
 
         ast_binop = init_ast(AST_BINOP);
+		ast_binop->line_n = hermes_parser->hermes_lexer->line_n;
         ast_binop->scope = (struct hermes_scope_T*) scope;
 
         ast_binop->binop_left = node;
@@ -596,6 +616,7 @@ AST_T* hermes_parser_parse_return(hermes_parser_T* hermes_parser, hermes_scope_T
 {
     hermes_parser_eat(hermes_parser, TOKEN_ID);
     AST_T* ast_return = init_ast(AST_RETURN);
+	ast_return->line_n = hermes_parser->hermes_lexer->line_n;
     ast_return->scope = (struct hermes_scope_T*) scope;
 
     if (hermes_parser->current_token->type != TOKEN_SEMI)
@@ -607,6 +628,7 @@ AST_T* hermes_parser_parse_return(hermes_parser_T* hermes_parser, hermes_scope_T
 AST_T* hermes_parser_parse_if(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     AST_T* ast_if = init_ast(AST_IF);
+	ast_if->line_n = hermes_parser->hermes_lexer->line_n;
     
     if (hermes_parser->current_token->type == TOKEN_ID) {
         hermes_parser_eat(hermes_parser, TOKEN_ID);
@@ -638,6 +660,7 @@ AST_T* hermes_parser_parse_new(hermes_parser_T* hermes_parser, hermes_scope_T* s
 {
     hermes_parser_eat(hermes_parser, TOKEN_ID);
     AST_T* ast_new = init_ast(AST_NEW);
+	ast_new->line_n = hermes_parser->hermes_lexer->line_n;
     ast_new->new_value = hermes_parser_parse_expr(hermes_parser, scope);
 
     return ast_new;
@@ -664,6 +687,7 @@ AST_T* hermes_parser_parse_iterate(hermes_parser_T* hermes_parser, hermes_scope_
     }
 
     AST_T* ast_iterate = init_ast(AST_ITERATE);
+    ast_iterate->line_n = hermes_parser->hermes_lexer->line_n;
     ast_iterate->iterate_iterable = ast_var;
     ast_iterate->iterate_function = ast_fname;
 
@@ -674,6 +698,7 @@ AST_T* hermes_parser_parse_assert(hermes_parser_T* hermes_parser, hermes_scope_T
 {
     hermes_parser_eat(hermes_parser, TOKEN_ID);
     AST_T* ast_assert = init_ast(AST_ASSERT);
+    ast_assert->line_n = hermes_parser->hermes_lexer->line_n;
     ast_assert->assert_expr = hermes_parser_parse_expr(hermes_parser, scope);
 
     return ast_assert;
@@ -686,6 +711,7 @@ AST_T* hermes_parser_parse_while(hermes_parser_T* hermes_parser, hermes_scope_T*
     hermes_parser_eat(hermes_parser, TOKEN_ID);
     hermes_parser_eat(hermes_parser, TOKEN_LPAREN);
     AST_T* ast_while = init_ast(AST_WHILE);
+	ast_while->line_n = hermes_parser->hermes_lexer->line_n;
     ast_while->while_expr = hermes_parser_parse_expr(hermes_parser, scope);
     hermes_parser_eat(hermes_parser, TOKEN_RPAREN);
     hermes_parser_eat(hermes_parser, TOKEN_LBRACE);
@@ -701,6 +727,7 @@ AST_T* hermes_parser_parse_while(hermes_parser_T* hermes_parser, hermes_scope_T*
 AST_T* hermes_parser_parse_function_call(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     AST_T* ast_function_call = init_ast(AST_FUNCTION_CALL);
+	ast_function_call->line_n = hermes_parser->hermes_lexer->line_n;
     ast_function_call->function_call_name = calloc(strlen(hermes_parser->prev_token->value) + 1, sizeof(char));
     strcpy(ast_function_call->function_call_name, hermes_parser->prev_token->value);
     hermes_parser_eat(hermes_parser, TOKEN_LPAREN);
@@ -759,6 +786,7 @@ AST_T* hermes_parser_parse_function_definition(hermes_parser_T* hermes_parser, h
         // alright, it sure is a function definition!
         
         AST_T* ast_function_definition = init_ast(AST_FUNCTION_DEFINITION);
+		ast_function_definition->line_n = hermes_parser->hermes_lexer->line_n;
         hermes_scope_T* new_scope = init_hermes_scope(0);
         new_scope->owner = ast_function_definition;
 
@@ -839,6 +867,7 @@ AST_T* hermes_parser_parse_function_definition(hermes_parser_T* hermes_parser, h
     {
         // alright, it is a variable definition.
         AST_T* ast_variable_definition = init_ast(AST_VARIABLE_DEFINITION);
+		ast_variable_definition->line_n = hermes_parser->hermes_lexer->line_n; // HERE I DID
         ast_variable_definition->scope = (struct hermes_scope_T*) scope;
         ast_variable_definition->variable_name = function_name;
         ast_variable_definition->variable_type = ast_type;

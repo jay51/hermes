@@ -52,6 +52,7 @@ AST_T* init_ast(int type)
     AST->fptr = (void*) 0;
     AST->iterate_iterable = (void*) 0;
     AST->iterate_function = (void*) 0;
+    AST->line_n = 0;
 
     return AST;
 }

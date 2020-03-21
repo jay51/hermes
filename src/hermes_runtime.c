@@ -74,7 +74,8 @@ static AST_T* _runtime_function_call(runtime_T* runtime, AST_T* fcall, AST_T* fd
 
         if (x > fdef->function_definition_arguments->size - 1)
         {
-            printf("Too many arguments\n");
+            printf("Error: [Line %d] Too many arguments\n", ast_arg->line_n);
+	    exit(1);
             break;
         }
 
@@ -350,7 +351,7 @@ AST_T* runtime_visit_variable(runtime_T* runtime, AST_T* node)
         }
     }
 
-    printf("Undefined variable %s\n", node->variable_name); exit(1);
+    printf("Error: [Line %d] Undefined variable %s\n", node->line_n, node->variable_name); exit(1);
 }
 
 AST_T* runtime_visit_variable_definition(runtime_T* runtime, AST_T* node)
@@ -484,7 +485,7 @@ AST_T* runtime_visit_variable_assignment(runtime_T* runtime, AST_T* node)
         }
     }
 
-    printf("Cant set undefined variable `%s`\n", left->variable_name); exit(1);
+    printf("Error: [Line %d] Cant set undefined variable `%s`\n", left->line_n, left->variable_name); exit(1);
 }
 
 AST_T* runtime_visit_variable_modifier(runtime_T* runtime, AST_T* node)
@@ -567,7 +568,7 @@ AST_T* runtime_visit_variable_modifier(runtime_T* runtime, AST_T* node)
         }
     }
 
-    printf("Cant set undefined variable `%s`\n", node->variable_name); exit(1);
+    printf("Error: [Line %d] Cant set undefined variable `%s`\n", node->line_n, node->variable_name); exit(1);
 }
 
 AST_T* runtime_visit_function_definition(runtime_T* runtime, AST_T* node)
@@ -819,7 +820,7 @@ AST_T* runtime_visit_function_call(runtime_T* runtime, AST_T* node)
     if (global_scope_func_def)
         return global_scope_func_def;
 
-    printf("Undefined method %s\n", node->function_call_name); exit(1);
+    printf("Error: [Line %d] Undefined method %s\n", node->line_n, node->function_call_name); exit(1);
 }
 
 AST_T* runtime_visit_null(runtime_T* runtime, AST_T* node)
@@ -1087,7 +1088,7 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
 
                             if (x > child->function_definition_arguments->size - 1)
                             {
-                                printf("Too many arguments\n");
+                                printf("Error: [Line %d] Too many arguments\n", ast_arg->line_n);
                                 break;
                             }
 
@@ -1545,7 +1546,7 @@ AST_T* runtime_visit_iterate(runtime_T* runtime, AST_T* node)
                      *
                      * TODO: Make this possible?
                      */
-                    printf("Can not iterate with native method `%s`\n", fdef->function_name);
+                    printf("Error: [Line %d] Can not iterate with native method `%s`\n", fdef->line_n, fdef->function_name);
                     exit(1);
                 }
 
@@ -1624,7 +1625,7 @@ AST_T* runtime_visit_assert(runtime_T* runtime, AST_T* node)
             sprintf(str, template, value);
         }
 
-        printf("Assertment failed! %s\n", str);
+        printf("[Line %d] Assertment failed! %s\n", node->line_n, str);
         free(str);
         exit(1);
     }
