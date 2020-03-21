@@ -52,6 +52,48 @@ static char* create_str(const char* str)
     return newstr;
 }
 
+static void collect_and_sweep_garbage(dynamic_list_T* old_def_list, hermes_scope_T* scope)
+{
+    dynamic_list_T* garbage = init_dynamic_list(sizeof(AST_T*));
+
+    for (int i = 0; i < scope->variable_definitions->size; i++)
+    {
+        AST_T* new_def = scope->variable_definitions->items[i];
+        unsigned int exists = 0;
+        
+        for (int j = 0; j < old_def_list->size; j++)
+        {
+            AST_T* old_def = old_def_list->items[j];
+
+
+            if (old_def == new_def)
+            {
+                exists = 1;
+            } 
+        }
+
+        if (!exists)
+            dynamic_list_append(garbage, new_def);
+    }
+
+    for (int i = 0; i < garbage->size; i++)
+    {
+        dynamic_list_remove(
+            scope->variable_definitions,
+            (AST_T*) garbage->items[i],
+            _ast_free
+        );
+    }
+
+    if (old_def_list->items != (void*)0)
+        free(old_def_list->items);
+    free(old_def_list);
+
+    if (garbage->items != (void*)0)
+        free(garbage->items);
+    free(garbage);
+}
+
 static AST_T* _runtime_function_call(runtime_T* runtime, AST_T* fcall, AST_T* fdef)
 {
     hermes_scope_T* function_definition_body_scope = (hermes_scope_T*) fdef->function_definition_body->scope;
@@ -874,6 +916,16 @@ AST_T* runtime_visit_integer(runtime_T* runtime, AST_T* node)
 
 AST_T* runtime_visit_compound(runtime_T* runtime, AST_T* node)
 {
+    hermes_scope_T* scope = get_scope(runtime, node);
+
+    dynamic_list_T* old_def_list = init_dynamic_list(sizeof(AST_T*));
+        
+    for (int i = 0; i < scope->variable_definitions->size; i++)
+    {
+        AST_T* vardef = scope->variable_definitions->items[i];
+        dynamic_list_append(old_def_list, vardef);
+    }
+
     for (int i = 0; i < node->compound_value->size; i++)
     {
         AST_T* child = (AST_T*) node->compound_value->items[i];
@@ -889,15 +941,21 @@ AST_T* runtime_visit_compound(runtime_T* runtime, AST_T* node)
             {
                 if (visited->return_value)
                 {
-                    return runtime_visit(runtime, visited->return_value);
+                    AST_T* ret_val = runtime_visit(runtime, visited->return_value);
+
+                    collect_and_sweep_garbage(old_def_list, scope);
+                    return ret_val;
                 }
                 else
                 {
+                    collect_and_sweep_garbage(old_def_list, scope);
                     return (void*) 0;
                 }
             }
         }
-    }
+    } 
+    
+    collect_and_sweep_garbage(old_def_list, scope);
 
     return node;
 }
@@ -1508,7 +1566,7 @@ AST_T* runtime_visit_while(runtime_T* runtime, AST_T* node)
 {
     while(_boolean_evaluation(runtime_visit(runtime, node->while_expr)))
     {
-        runtime_visit(runtime, node->while_body);
+        runtime_visit(runtime, node->while_body); 
     }
 
     return node;
