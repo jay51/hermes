@@ -89,6 +89,7 @@ typedef struct AST_STRUCT
 } AST_T;
 
 AST_T* init_ast(int type);
+AST_T* init_ast_with_line(int type, int line_n);
 
 void _ast_free(void* ast);
 void ast_free(AST_T* ast);
