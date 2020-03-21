@@ -9,6 +9,7 @@ AST_T* init_ast(int type)
 {
     AST_T* AST = calloc(1, sizeof(struct AST_STRUCT));
     AST->type = type;
+    AST->line_n = -1;
     AST->function_call_name = (void*) 0;
     AST->int_value = 0;
     AST->boolean_value = 0;
@@ -55,6 +56,14 @@ AST_T* init_ast(int type)
     AST->line_n = 0;
 
     return AST;
+}
+
+AST_T* init_ast_with_line(int type, int line_n)
+{
+    AST_T* node = init_ast(type);
+    node->line_n = line_n;
+    
+    return node;
 }
 
 void _ast_free(void* ast)
