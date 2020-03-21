@@ -40,6 +40,7 @@ typedef struct AST_STRUCT
     
     char* function_call_name;
 
+    int line_n;
     int int_value;
     unsigned int boolean_value;
     unsigned int is_object_child;
