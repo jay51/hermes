@@ -43,4 +43,5 @@ void test_hermes_output(void** state)
     assert_true(strcmp(getstdout("sources/output/compositions.he"), "11\n") == 0);
     assert_true(strcmp(getstdout("sources/output/char.he"), "g\n") == 0);
     assert_true(strcmp(getstdout("sources/output/radix.he"), "1100001\n141\n97\n5f\n") == 0);
+    assert_true(strcmp(getstdout("sources/output/definition_in_loop.he"), "1\n1\n1\n1\n") == 0);
 }
