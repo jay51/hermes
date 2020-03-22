@@ -13,9 +13,9 @@ hermes_scope_T* get_scope(runtime_T* runtime, AST_T* node)
     return (hermes_scope_T*) node->scope;
 }
 
-static void _multiple_variable_definitions_error(char* variable_name)
+static void _multiple_variable_definitions_error(int line_n, char* variable_name)
 {
-    printf("The variable `%s` is already defined.\n", variable_name);
+    printf("[Line %d]: The variable `%s` is already defined.\n", line_n, variable_name);
     exit(1);
 }
 
@@ -125,7 +125,24 @@ static AST_T* _runtime_function_call(runtime_T* runtime, AST_T* fcall, AST_T* fd
         char* arg_name = ast_fdef_arg->variable_name;
 
         AST_T* new_variable_def = init_ast(AST_VARIABLE_DEFINITION);
-        new_variable_def->variable_value = runtime_visit(runtime, ast_arg);
+
+        if (ast_arg->type == AST_VARIABLE)
+        {
+            AST_T* vdef = get_variable_definition_by_name(
+                runtime,
+                (hermes_scope_T*) get_scope(runtime, ast_arg),
+                ast_arg->variable_name
+            );
+            
+            if (vdef)
+            {
+                new_variable_def->variable_value = vdef->variable_value;
+            }
+        }
+        
+        if (new_variable_def->variable_value == (void*)0)
+            new_variable_def->variable_value = runtime_visit(runtime, ast_arg);
+
         new_variable_def->variable_name = arg_name;
 
         dynamic_list_append(function_definition_body_scope->variable_definitions, new_variable_def);
@@ -406,7 +423,7 @@ AST_T* runtime_visit_variable_definition(runtime_T* runtime, AST_T* node)
 
     if (vardef_global != (void*) 0)
     {
-        _multiple_variable_definitions_error(node->variable_name);
+        _multiple_variable_definitions_error(node->line_n, node->variable_name);
     }
    
     if (node->scope)
@@ -419,13 +436,13 @@ AST_T* runtime_visit_variable_definition(runtime_T* runtime, AST_T* node)
 
         if (vardef_local != (void*) 0)
         {
-            _multiple_variable_definitions_error(node->variable_name);
+            _multiple_variable_definitions_error(node->line_n, node->variable_name);
         }
     }
 
     if (node->saved_function_call != (void*) 0)
     {
-        node->variable_value = node->saved_function_call;
+        node->variable_value = runtime_visit(runtime, node->saved_function_call);
     }
     else
     {
@@ -672,7 +689,23 @@ AST_T* runtime_function_lookup(runtime_T* runtime, hermes_scope_T* scope, AST_T*
         for (int x = 0; x < node->function_call_arguments->size; x++)
         {
             AST_T* ast_arg = (AST_T*) node->function_call_arguments->items[x];
-            AST_T* visited = runtime_visit(runtime, ast_arg);
+            AST_T* visited = (void*)0;
+
+            if (ast_arg->type == AST_VARIABLE)
+            {
+                AST_T* vdef = get_variable_definition_by_name(
+                    runtime,
+                    (hermes_scope_T*) get_scope(runtime, ast_arg),
+                    ast_arg->variable_name
+                );
+                
+                if (vdef)
+                {
+                    visited = vdef->variable_value;
+                }
+            }
+
+            visited = visited != (void*)0 ? visited : runtime_visit(runtime, ast_arg);
             dynamic_list_append(visited_fptr_args, visited);
         }
 
