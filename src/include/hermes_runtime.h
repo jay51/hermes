@@ -75,4 +75,6 @@ hermes_scope_T* get_scope(runtime_T* runtime, AST_T* node);
 void hermes_runtime_buffer_stdout(runtime_T* runtime, const char* buffer);
 
 void runtime_expect_args(dynamic_list_T* in_args, int argc, int args[]);
+
+AST_T* get_variable_definition_by_name(runtime_T* runtime, hermes_scope_T* scope, char* variable_name);
 #endif

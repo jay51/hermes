@@ -1,4 +1,3 @@
-int x = 10;
 
 
 int def_var()
@@ -8,17 +7,18 @@ int def_var()
     return abc;
 }
 
-
-while (x > 0)
+void noop(int item)
 {
-    int num = 0;
-    int asdf = 1;
-    int xxx = def_var();
-    print(xxx);
-
-    print(x);
-    x -= 1;
+    print(item);
 }
 
-int abc = 3;
-print(abc);
+
+int x = 2;
+while (x > 0)
+{
+    int abc = def_var();
+    print(abc);
+    noop(abc);
+
+    x -= 1;
+}
