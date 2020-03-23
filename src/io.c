@@ -1,4 +1,5 @@
 #include "include/io.h"
+#include <errno.h>
 
 
 /**
@@ -25,7 +26,10 @@ char* hermes_read_file(char* filename)
             fread (buffer, 1, length, f);
 
         fclose (f);
+        return buffer;
     }
 
-    return buffer;
+    perror("error");
+    exit(2);
+
 }
