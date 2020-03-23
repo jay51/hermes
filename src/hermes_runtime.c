@@ -806,13 +806,18 @@ AST_T* runtime_visit_function_call(runtime_T* runtime, AST_T* node)
         AST_T* ast_arg_0 = (AST_T*) node->function_call_arguments->items[0];
         AST_T* visited_0 = runtime_visit(runtime, ast_arg_0);
 
-        AST_T* ast_arg_1 = (AST_T*) node->function_call_arguments->items[1];
-        AST_T* visited_1 = runtime_visit(runtime, ast_arg_1);
+        AST_T* fdef = INITIALIZED_NOOP;
+        
+        for (int i = 1; i < node->function_call_arguments->size; i++)
+        {
+            AST_T* ast_arg = (AST_T*) node->function_call_arguments->items[i];
+            AST_T* visited_ast = runtime_visit(runtime, ast_arg);
 
-        AST_T* fdef = get_dl_function(visited_0->string_value, visited_1->string_value);
-        fdef->scope = (struct hermes_scope_T*) scope;
+            fdef = get_dl_function(visited_0->string_value, visited_ast->string_value);
+            fdef->scope = (struct hermes_scope_T*) scope;
 
-        runtime_visit(runtime, fdef);
+            runtime_visit(runtime, fdef);
+        }
 
         return fdef;
     }
