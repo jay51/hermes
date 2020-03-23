@@ -224,6 +224,9 @@ void ast_free(AST_T* ast)
     if (ast->iterate_function)
         ast_free(ast->iterate_function);
 
+    if (ast->assert_expr)
+        ast_free(ast->assert_expr);
+
     /*if (ast->scope)
     {
         hermes_scope_T* scope = (hermes_scope_T*) ast->scope;
