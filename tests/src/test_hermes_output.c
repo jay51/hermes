@@ -8,6 +8,8 @@
 
 static char* getstdout(const char* source)
 {
+    printf("---- * %s * ----\n", source);
+
     hermes_lexer_T* hermes_lexer = init_hermes_lexer(
         get_file_contents(source)
     );
@@ -26,9 +28,10 @@ static char* getstdout(const char* source)
     
     // TODO free lexer, parser & runtime here...
     //
-    /*hermes_lexer_free(hermes_lexer);
+    hermes_lexer_free(hermes_lexer);
     free(runtime->stdout_buffer);
-    free(runtime);*/
+    free(runtime);
+    free(parser);
 
     return buffer;
 }
@@ -44,4 +47,5 @@ void test_hermes_output(void** state)
     assert_true(strcmp(getstdout("sources/output/char.he"), "g\n") == 0);
     assert_true(strcmp(getstdout("sources/output/radix.he"), "1100001\n141\n97\n5f\n") == 0);
     assert_true(strcmp(getstdout("sources/output/definition_in_loop.he"), "1\n1\n1\n1\n") == 0);
+    assert_true(strcmp(getstdout("sources/output/object_with_object.he"), "dog\n6\n") == 0);
 }
