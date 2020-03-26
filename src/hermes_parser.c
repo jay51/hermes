@@ -138,18 +138,7 @@ AST_T* hermes_parser_parse_statement(hermes_parser_T* hermes_parser, hermes_scop
             if (strcmp(token_value, STATEMENT_ASSERT) == 0)
                 return hermes_parser_parse_assert(hermes_parser, scope);
 
-            if (
-                strcmp(token_value, DATA_TYPE_VOID) == 0 ||
-                strcmp(token_value, DATA_TYPE_INT) == 0 ||
-                strcmp(token_value, DATA_TYPE_STRING) == 0 ||
-                strcmp(token_value, DATA_TYPE_CHAR) == 0 ||
-                strcmp(token_value, DATA_TYPE_FLOAT) == 0 ||
-                strcmp(token_value, DATA_TYPE_BOOLEAN) == 0 ||
-                strcmp(token_value, DATA_TYPE_OBJECT) == 0 ||
-                strcmp(token_value, DATA_TYPE_ENUM) == 0 ||
-                strcmp(token_value, DATA_TYPE_LIST) == 0 ||
-                strcmp(token_value, DATA_TYPE_SOURCE) == 0
-            )
+            if (is_data_type(token_value))
                 return hermes_parser_parse_function_definition(hermes_parser, scope);
 
             hermes_parser_eat(hermes_parser, TOKEN_ID);
@@ -365,6 +354,10 @@ AST_T* hermes_parser_parse_object(hermes_parser_T* hermes_parser, hermes_scope_T
 
     if (hermes_parser->current_token->type != TOKEN_RBRACE)
     {
+        /**
+         * Parsing object children
+         */
+
         if (hermes_parser->current_token->type == TOKEN_ID)
             dynamic_list_append(ast_object->object_children, as_object_child(hermes_parser_parse_function_definition(hermes_parser, new_scope), ast_object));
 
@@ -430,6 +423,9 @@ AST_T* hermes_parser_parse_list(hermes_parser_T* hermes_parser, hermes_scope_T* 
     if (hermes_parser->current_token->type != TOKEN_RBRACKET)
         dynamic_list_append(ast_list->list_children, hermes_parser_parse_expr(hermes_parser, scope));
 
+    /**
+     * Parsing list items
+     */
     while (hermes_parser->current_token->type == TOKEN_COMMA)
     {
         hermes_parser_eat(hermes_parser, TOKEN_COMMA);
@@ -517,18 +513,7 @@ AST_T* hermes_parser_parse_term(hermes_parser_T* hermes_parser, hermes_scope_T* 
 {
     char* token_value = hermes_parser->current_token->value;
 
-    if (
-        strcmp(token_value, DATA_TYPE_VOID) == 0 ||
-        strcmp(token_value, DATA_TYPE_INT) == 0 ||
-        strcmp(token_value, DATA_TYPE_STRING) == 0 ||
-        strcmp(token_value, DATA_TYPE_CHAR) == 0 ||
-        strcmp(token_value, DATA_TYPE_FLOAT) == 0 ||
-        strcmp(token_value, DATA_TYPE_BOOLEAN) == 0 ||
-        strcmp(token_value, DATA_TYPE_OBJECT) == 0 ||
-        strcmp(token_value, DATA_TYPE_ENUM) == 0 ||
-        strcmp(token_value, DATA_TYPE_LIST) == 0 ||
-        strcmp(token_value, DATA_TYPE_SOURCE) == 0
-    ) // this is to be able to have variable definitions inside of function definition parantheses.
+    if (is_data_type(token_value)) // this is to be able to have variable definitions inside of function definition parantheses.
         return hermes_parser_parse_function_definition(hermes_parser, scope);
 
     AST_T* node = hermes_parser_parse_factor(hermes_parser, scope);
@@ -630,7 +615,6 @@ AST_T* hermes_parser_parse_if(hermes_parser_T* hermes_parser, hermes_scope_T* sc
         }
         else
         {
-
             hermes_parser_eat(hermes_parser, TOKEN_LBRACE);
             ast_if->else_body = hermes_parser_parse_statements(hermes_parser, scope);
             ast_if->else_body->scope = (struct hermes_scope_T*) scope;
@@ -662,6 +646,10 @@ AST_T* hermes_parser_parse_iterate(hermes_parser_T* hermes_parser, hermes_scope_
 
     if (is_data_type(hermes_parser->current_token->value))
     {
+        /**
+         * Here we make the assumption that a private function is being
+         * defined instead of passing varaible to the iterate_function
+         */
         ast_fname = hermes_parser_parse_function_definition(hermes_parser, scope);
     }
     else
@@ -693,7 +681,7 @@ AST_T* hermes_parser_parse_while(hermes_parser_T* hermes_parser, hermes_scope_T*
     hermes_parser_eat(hermes_parser, TOKEN_ID);
     hermes_parser_eat(hermes_parser, TOKEN_LPAREN);
     AST_T* ast_while = init_ast_with_line(AST_WHILE, hermes_parser->hermes_lexer->line_n);
-    ast_while->while_expr = hermes_parser_parse_expr(hermes_parser, scope);
+    ast_while->while_expr = hermes_parser_parse_expr(hermes_parser, scope);  // boolean expression
     hermes_parser_eat(hermes_parser, TOKEN_RPAREN);
     hermes_parser_eat(hermes_parser, TOKEN_LBRACE);
     ast_while->while_body = hermes_parser_parse_statements(hermes_parser, scope);
@@ -722,6 +710,9 @@ AST_T* hermes_parser_parse_function_call(hermes_parser_T* hermes_parser, hermes_
 
         dynamic_list_append(ast_function_call->function_call_arguments, ast_expr);
 
+        /**
+         * Parsing function call arguments
+         */
         while (hermes_parser->current_token->type == TOKEN_COMMA)
         {
             hermes_parser_eat(hermes_parser, TOKEN_COMMA);
@@ -739,6 +730,15 @@ AST_T* hermes_parser_parse_function_call(hermes_parser_T* hermes_parser, hermes_
     return ast_function_call;
 }
 
+/**
+ * Parses a function_definition OR a variable_definition depending on
+ * if it encounters parantheses or not.
+ *
+ * @param hermes_parser_T* hermes_parser
+ * @param hermes_scope_T* scope
+ *
+ * @return AST_T*
+ */
 AST_T* hermes_parser_parse_function_definition(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     AST_T* ast_type = hermes_parser_parse_type(hermes_parser, scope);
@@ -763,8 +763,11 @@ AST_T* hermes_parser_parse_function_definition(hermes_parser_T* hermes_parser, h
 
     if (hermes_parser->current_token->type == TOKEN_LPAREN)
     {
-        // alright, it sure is a function definition!
-        
+        /**
+         * Here we make the assumption that a function definition is to be
+         * parsed, because we encountered a left parentheses.
+         */
+
         AST_T* ast_function_definition = init_ast_with_line(AST_FUNCTION_DEFINITION, hermes_parser->hermes_lexer->line_n);
         hermes_scope_T* new_scope = init_hermes_scope(0);
         new_scope->owner = ast_function_definition;
@@ -774,7 +777,10 @@ AST_T* hermes_parser_parse_function_definition(hermes_parser_T* hermes_parser, h
         ast_function_definition->function_definition_arguments = init_dynamic_list(sizeof(struct AST_STRUCT));
 
         hermes_parser_eat(hermes_parser, TOKEN_LPAREN);
-
+        
+        /**
+         * Parsing function definition arguments.
+         */
         if (hermes_parser->current_token->type != TOKEN_RPAREN)
         {
             dynamic_list_append(ast_function_definition->function_definition_arguments, hermes_parser_parse_expr(hermes_parser, scope));
@@ -811,11 +817,13 @@ AST_T* hermes_parser_parse_function_definition(hermes_parser_T* hermes_parser, h
             child_def->scope = (struct hermes_scope_T*) new_scope;
             dynamic_list_append(ast_function_definition->composition_children, child_def);
 
+            /**
+             * Parse child functions of composition.
+             */
             while (hermes_parser->current_token->type == TOKEN_COMMA)
             {
                 hermes_parser_eat(hermes_parser, TOKEN_COMMA);
                 
-
                 if (is_data_type(hermes_parser->current_token->value))
                 {
                     child_def = hermes_parser_parse_function_definition(hermes_parser, scope);
@@ -826,8 +834,6 @@ AST_T* hermes_parser_parse_function_definition(hermes_parser_T* hermes_parser, h
                     child_def = hermes_parser_parse_variable(hermes_parser, scope);
                 }
 
-                //hermes_parser_eat(hermes_parser, TOKEN_ID);
-                //child_def = hermes_parser_parse_variable(hermes_parser, scope);
                 child_def->scope = (struct hermes_scope_T*) new_scope;
                 dynamic_list_append(ast_function_definition->composition_children, child_def);
             }
@@ -844,7 +850,11 @@ AST_T* hermes_parser_parse_function_definition(hermes_parser_T* hermes_parser, h
     }
     else
     {
-        // alright, it is a variable definition.
+        /**
+         * Here we make the assumption that we are to parse
+         * a variable_definition since we did not encounter a left parantheses.
+         */
+
         AST_T* ast_variable_definition = init_ast_with_line(AST_VARIABLE_DEFINITION, hermes_parser->hermes_lexer->line_n);
         ast_variable_definition->scope = (struct hermes_scope_T*) scope;
         ast_variable_definition->variable_name = function_name;
