@@ -1,1 +1,17 @@
-print("hello world);
+
+int i = 0;
+
+
+if (i == 0){
+    print("it's 0");
+
+} else if (i != 1) {
+    print("it's not 1");
+
+} else {
+    print("it's not");
+}
+
+
+
+print("hello world");

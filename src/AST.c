@@ -42,7 +42,7 @@ AST_T* init_ast(int type)
     AST->if_expr = (void*) 0;
     AST->if_body = (void*) 0;
     AST->if_otherwise = (void*) 0;
-    AST->else_expr = (void*) 0;
+    AST->else_body = (void*) 0;
     AST->while_expr = (void*) 0;
     AST->while_body = (void*) 0;
     AST->return_value = (void*) 0;
@@ -200,8 +200,8 @@ void ast_free(AST_T* ast)
     if (ast->if_otherwise)
         ast_free(ast->if_otherwise);
 
-    if (ast->else_expr)
-        ast_free(ast->else_expr);
+    if (ast->else_body)
+        ast_free(ast->else_body);
 
     if (ast->while_expr)
         ast_free(ast->while_expr);
