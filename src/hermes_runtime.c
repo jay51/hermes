@@ -1595,6 +1595,10 @@ AST_T* runtime_visit_if(runtime_T* runtime, AST_T* node)
         {
             return runtime_visit(runtime, node->if_otherwise);
         }
+
+        if (node->else_body) {
+            return runtime_visit(runtime, node->else_body);
+        }
     }
 
     return node;

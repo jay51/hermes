@@ -70,7 +70,7 @@ typedef struct AST_STRUCT
     struct AST_STRUCT* if_expr;
     struct AST_STRUCT* if_body;
     struct AST_STRUCT* if_otherwise;
-    struct AST_STRUCT* else_expr;
+    struct AST_STRUCT* else_body;
     struct AST_STRUCT* while_expr;
     struct AST_STRUCT* while_body;
     struct AST_STRUCT* return_value;
