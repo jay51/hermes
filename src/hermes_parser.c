@@ -608,7 +608,7 @@ AST_T* hermes_parser_parse_if(hermes_parser_T* hermes_parser, hermes_scope_T* sc
 {
     AST_T* ast_if = init_ast_with_line(AST_IF, hermes_parser->hermes_lexer->line_n);
     
-    hermes_parser_eat(hermes_parser, TOKEN_ID);
+    hermes_parser_eat(hermes_parser, TOKEN_ID); // IF token
 
     hermes_parser_eat(hermes_parser, TOKEN_LPAREN);
     ast_if->if_expr = hermes_parser_parse_expr(hermes_parser, scope);
@@ -621,12 +621,15 @@ AST_T* hermes_parser_parse_if(hermes_parser_T* hermes_parser, hermes_scope_T* sc
 
     if (strcmp(hermes_parser->current_token->value, STATEMENT_ELSE) == 0)
     {
-        hermes_parser_eat(hermes_parser, TOKEN_ID);
-        if (strcmp(hermes_parser->current_token->value, STATEMENT_IF) == 0){
+        hermes_parser_eat(hermes_parser, TOKEN_ID); // ELSE token
+
+        if (strcmp(hermes_parser->current_token->value, STATEMENT_IF) == 0)
+        {
             ast_if->if_otherwise = hermes_parser_parse_if(hermes_parser, scope);
             ast_if->if_otherwise->scope = (struct hermes_scope_T*) scope;
-
-        } else {
+        }
+        else
+        {
 
             hermes_parser_eat(hermes_parser, TOKEN_LBRACE);
             ast_if->else_body = hermes_parser_parse_statements(hermes_parser, scope);
