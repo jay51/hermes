@@ -347,3 +347,6 @@ list cool_stuff = [
 ```bash
 make && sudo make install
 ```
+
+## Syntax Highlighting
+* [Vim](https://github.com/sebbekarlsson/hermes-vim)
