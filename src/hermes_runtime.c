@@ -990,6 +990,11 @@ AST_T* runtime_visit_compound(runtime_T* runtime, AST_T* node)
                     return (void*) 0;
                 }
             }
+            else
+            if (visited->type == AST_BREAK)
+            {
+                return visited;
+            }
         }
     } 
     
@@ -1608,7 +1613,10 @@ AST_T* runtime_visit_while(runtime_T* runtime, AST_T* node)
 {
     while(_boolean_evaluation(runtime_visit(runtime, node->while_expr)))
     {
-        runtime_visit(runtime, node->while_body); 
+        AST_T* visited = runtime_visit(runtime, node->while_body);
+
+        if (visited->type == AST_BREAK)
+            break;
     }
 
     return node;

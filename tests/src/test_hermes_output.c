@@ -50,4 +50,5 @@ void test_hermes_output(void** state)
     assert_true(strcmp(getstdout("sources/output/object_with_object.he"), "dog\n6\n") == 0);
     assert_true(strcmp(getstdout("sources/output/if.he"), "yes\n") == 0);
     assert_true(strcmp(getstdout("sources/output/else.he"), "it's not\nhello world\n") == 0);
+    assert_true(strcmp(getstdout("sources/output/break.he"), "5\n") == 0);
 }
