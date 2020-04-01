@@ -1,0 +1,7 @@
+int x = 5;
+string name;
+
+if (x > 3)
+    name = "John";
+
+print(name);

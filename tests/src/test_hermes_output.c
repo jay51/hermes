@@ -52,4 +52,5 @@ void test_hermes_output(void** state)
     assert_true(strcmp(getstdout("sources/output/else.he"), "it's not\nhello world\n") == 0);
     assert_true(strcmp(getstdout("sources/output/break.he"), "5\n") == 0);
     assert_true(strcmp(getstdout("sources/output/continue.he"), "1\n2\n4\n5\n6\n") == 0);
+    assert_true(strcmp(getstdout("sources/output/if_no_brace.he"), "22\n") == 0);
 }
