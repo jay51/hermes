@@ -615,11 +615,25 @@ AST_T* hermes_parser_parse_if(hermes_parser_T* hermes_parser, hermes_scope_T* sc
     hermes_parser_eat(hermes_parser, TOKEN_LPAREN);
     ast_if->if_expr = hermes_parser_parse_expr(hermes_parser, scope);
     hermes_parser_eat(hermes_parser, TOKEN_RPAREN);
-
-    hermes_parser_eat(hermes_parser, TOKEN_LBRACE);
-    ast_if->if_body = hermes_parser_parse_statements(hermes_parser, scope);
+    
     ast_if->scope = (struct hermes_scope_T*) scope;
-    hermes_parser_eat(hermes_parser, TOKEN_RBRACE);
+
+    if (hermes_parser->current_token->type == TOKEN_LBRACE)
+    {
+        hermes_parser_eat(hermes_parser, TOKEN_LBRACE);
+        ast_if->if_body = hermes_parser_parse_statements(hermes_parser, scope);
+        hermes_parser_eat(hermes_parser, TOKEN_RBRACE);
+    }
+    else // accept if-statement without braces. (will only parse one statement)
+    {
+        AST_T* compound = init_ast_with_line(AST_COMPOUND, hermes_parser->hermes_lexer->line_n);
+        compound->scope = (struct hermes_scope_T*) scope;
+        AST_T* statement = hermes_parser_parse_statement(hermes_parser, scope);
+        hermes_parser_eat(hermes_parser, TOKEN_SEMI);
+        dynamic_list_append(compound->compound_value, statement);
+
+        ast_if->if_body = compound;
+    }
 
     if (strcmp(hermes_parser->current_token->value, STATEMENT_ELSE) == 0)
     {
@@ -632,10 +646,25 @@ AST_T* hermes_parser_parse_if(hermes_parser_T* hermes_parser, hermes_scope_T* sc
         }
         else
         {
-            hermes_parser_eat(hermes_parser, TOKEN_LBRACE);
-            ast_if->else_body = hermes_parser_parse_statements(hermes_parser, scope);
-            ast_if->else_body->scope = (struct hermes_scope_T*) scope;
-            hermes_parser_eat(hermes_parser, TOKEN_RBRACE);
+
+            if (hermes_parser->current_token->type == TOKEN_LBRACE)
+            {
+                hermes_parser_eat(hermes_parser, TOKEN_LBRACE);
+                ast_if->else_body = hermes_parser_parse_statements(hermes_parser, scope);
+                ast_if->else_body->scope = (struct hermes_scope_T*) scope;
+                hermes_parser_eat(hermes_parser, TOKEN_RBRACE);
+            }
+            else // parse else without braces. (only parses one statement)
+            {
+                AST_T* compound = init_ast_with_line(AST_COMPOUND, hermes_parser->hermes_lexer->line_n);
+                compound->scope = (struct hermes_scope_T*) scope;
+                AST_T* statement = hermes_parser_parse_statement(hermes_parser, scope);
+                hermes_parser_eat(hermes_parser, TOKEN_SEMI);
+                dynamic_list_append(compound->compound_value, statement);
+
+                ast_if->else_body = compound;
+                ast_if->else_body->scope = (struct hermes_scope_T*) scope;
+            }
         }
     }
 
