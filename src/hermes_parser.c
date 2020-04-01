@@ -18,6 +18,7 @@ const char* STATEMENT_IF = "if";
 const char* STATEMENT_ELSE = "else";
 const char* STATEMENT_RETURN = "return";
 const char* STATEMENT_BREAK = "break";
+const char* STATEMENT_CONTINUE = "continue";
 const char* STATEMENT_NEW = "new";
 const char* STATEMENT_ITERATE = "iterate";
 const char* STATEMENT_ASSERT = "assert";
@@ -132,6 +133,9 @@ AST_T* hermes_parser_parse_statement(hermes_parser_T* hermes_parser, hermes_scop
 
             if (strcmp(token_value, STATEMENT_BREAK) == 0)
                 return hermes_parser_parse_break(hermes_parser, scope);
+
+            if (strcmp(token_value, STATEMENT_CONTINUE) == 0)
+                return hermes_parser_parse_continue(hermes_parser, scope);
 
             if (strcmp(token_value, STATEMENT_NEW) == 0)
                 return hermes_parser_parse_new(hermes_parser, scope);
@@ -581,6 +585,13 @@ AST_T* hermes_parser_parse_break(hermes_parser_T* hermes_parser, hermes_scope_T*
     hermes_parser_eat(hermes_parser, TOKEN_ID);  // break token
 
     return init_ast_with_line(AST_BREAK, hermes_parser->hermes_lexer->line_n);
+}
+
+AST_T* hermes_parser_parse_continue(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
+{
+    hermes_parser_eat(hermes_parser, TOKEN_ID);  // continue token
+
+    return init_ast_with_line(AST_CONTINUE, hermes_parser->hermes_lexer->line_n);
 }
 
 AST_T* hermes_parser_parse_return(hermes_parser_T* hermes_parser, hermes_scope_T* scope)

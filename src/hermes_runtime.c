@@ -271,6 +271,7 @@ AST_T* runtime_visit(runtime_T* runtime, AST_T* node)
         case AST_BINOP: return runtime_visit_binop(runtime, node); break;
         case AST_NOOP: return runtime_visit_noop(runtime, node); break;
         case AST_BREAK: return runtime_visit_break(runtime, node); break;
+        case AST_CONTINUE: return runtime_visit_continue(runtime, node); break;
         case AST_RETURN: return runtime_visit_return(runtime, node); break;
         case AST_IF: return runtime_visit_if(runtime, node); break;
         case AST_WHILE: return runtime_visit_while(runtime, node); break;
@@ -991,7 +992,7 @@ AST_T* runtime_visit_compound(runtime_T* runtime, AST_T* node)
                 }
             }
             else
-            if (visited->type == AST_BREAK)
+            if (visited->type == AST_BREAK || visited->type == AST_CONTINUE)
             {
                 return visited;
             }
@@ -1580,6 +1581,11 @@ AST_T* runtime_visit_break(runtime_T* runtime, AST_T* node)
     return node;
 }
 
+AST_T* runtime_visit_continue(runtime_T* runtime, AST_T* node)
+{
+    return node;
+}
+
 AST_T* runtime_visit_return(runtime_T* runtime, AST_T* node)
 {
     return node;
@@ -1617,6 +1623,9 @@ AST_T* runtime_visit_while(runtime_T* runtime, AST_T* node)
 
         if (visited->type == AST_BREAK)
             break;
+        else
+        if (visited->type == AST_CONTINUE)
+            continue;
     }
 
     return node;

@@ -28,6 +28,7 @@ typedef struct AST_STRUCT
         AST_NOOP,
         AST_BREAK,
         AST_RETURN,
+        AST_CONTINUE,
         AST_IF,
         AST_ELSE,
         AST_WHILE,
