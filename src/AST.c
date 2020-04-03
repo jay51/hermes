@@ -1,6 +1,7 @@
 #include "include/AST.h"
 #include "include/hermes_scope.h"
 #include "include/string_utils.h"
+#include "include/token.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -655,11 +656,14 @@ char* ast_list_access_to_string(AST_T* ast)
 
 char* ast_binop_to_string(AST_T* ast)
 {
+    char* operator_str = token_to_string(ast->binop_operator);
+
     char* left = ast_to_string(ast->binop_left);
     char* right = ast_to_string(ast->binop_right);
-    char* str = calloc(strlen(left) + strlen(right) + 2, sizeof(char));
+    char* str = calloc(strlen(left) + strlen(right) + strlen(operator_str) + 1, sizeof(char));
+    
     strcat(str, left);
-    strcat(str, "?");
+    strcat(str, operator_str);
     strcat(str, right);
     free(left);
     free(right);

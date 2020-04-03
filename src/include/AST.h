@@ -2,6 +2,7 @@
 #define HERMES_AST_H
 #include <stdio.h>
 #include "dynamic_list.h"
+#include "token.h"
 
 typedef struct AST_STRUCT
 {
@@ -56,7 +57,7 @@ typedef struct AST_STRUCT
     char* function_name;
     struct AST_STRUCT* binop_left;
     struct AST_STRUCT* binop_right;
-    int binop_operator;
+    token_T* binop_operator;
     dynamic_list_T* compound_value;
     dynamic_list_T* function_call_arguments;
     dynamic_list_T* function_definition_arguments;

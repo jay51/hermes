@@ -580,7 +580,7 @@ AST_T* runtime_visit_variable_modifier(runtime_T* runtime, AST_T* node)
         {
             value = runtime_visit(runtime, node->binop_right);
 
-            switch (node->binop_operator)
+            switch (node->binop_operator->type)
             {
                 case TOKEN_PLUS_EQUALS: {
                     if (strcmp(ast_variable_definition->variable_type->type_value, "int") == 0)
@@ -624,6 +624,7 @@ AST_T* runtime_visit_variable_modifier(runtime_T* runtime, AST_T* node)
                         return ast_variable_definition->variable_value;
                     }
                 } break;
+                default: {printf("Error: [Line %d] `%s` is not a valid operator\n", node->line_n, node->binop_operator->value); exit(1);} break;
             }
         }
     }
@@ -1139,7 +1140,7 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
     AST_T* left = runtime_visit(runtime, node->binop_left);
     AST_T* right = node->binop_right;
 
-    if (node->binop_operator == TOKEN_DOT)
+    if (node->binop_operator->type == TOKEN_DOT)
     {
         char* access_name = (void*) 0;
 
@@ -1212,7 +1213,7 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
 
     right = runtime_visit(runtime, right);
 
-    switch (node->binop_operator)
+    switch (node->binop_operator->type)
     {
         case TOKEN_PLUS: {
             if (left->type == AST_INTEGER && right->type == AST_INTEGER)
@@ -1253,8 +1254,40 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
 
                 return return_value;
             }
-            // TODO: implement left == string && right == int
-            // TODO: implement right == int && left == string
+            if (left->type == AST_STRING && right->type == AST_INTEGER)
+            {
+                const char* int_str_template = "%d";
+                size_t int_padding = sizeof(char) * 4;
+                char* int_str = calloc(strlen(int_str_template + 1 + int_padding), sizeof(char));
+                sprintf(int_str, int_str_template, right->int_value);
+
+
+                char* new_str = calloc(strlen(left->string_value) + strlen(int_str) + 1, sizeof(char));
+                strcat(new_str, left->string_value);
+                strcat(new_str, int_str);
+                free(int_str);
+                return_value = init_ast(AST_STRING);
+                return_value->string_value = new_str;
+
+                return return_value;
+            }
+            if (left->type == AST_INTEGER && right->type == AST_STRING)
+            {
+                const char* int_str_template = "%d";
+                size_t int_padding = sizeof(char) * 4;
+                char* int_str = calloc(strlen(int_str_template + 1 + int_padding), sizeof(char));
+                sprintf(int_str, int_str_template, left->int_value);
+
+
+                char* new_str = calloc(strlen(right->string_value) + strlen(int_str) + 1, sizeof(char));
+                strcat(new_str, int_str);
+                strcat(new_str, right->string_value);
+                free(int_str);
+                return_value = init_ast(AST_STRING);
+                return_value->string_value = new_str;
+
+                return return_value;
+            }
         } break;
         case TOKEN_MINUS: {
             if (left->type == AST_INTEGER && right->type == AST_INTEGER)
@@ -1566,6 +1599,7 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
                 return return_value;
             }
         } break;
+        default: {printf("Error: [Line %d] `%s` is not a valid operator\n", node->line_n, node->binop_operator->value); exit(1);} break;
     }
 
     return node;

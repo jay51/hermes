@@ -44,5 +44,9 @@ typedef struct TOKEN_STRUCT
 
 token_T* init_token(int type, char* value);
 
+token_T* token_copy(token_T* token);
+
 void token_free(token_T* token);
+
+char* token_to_string(token_T* token);
 #endif

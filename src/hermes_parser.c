@@ -332,13 +332,13 @@ AST_T* hermes_parser_parse_variable(hermes_parser_T* hermes_parser, hermes_scope
         hermes_parser->current_token->type == TOKEN_STAR_EQUALS
     )
     {
-        int type = hermes_parser->current_token->type;
+        token_T* operator = token_copy(hermes_parser->current_token);
 
-        hermes_parser_eat(hermes_parser, type);
+        hermes_parser_eat(hermes_parser, operator->type);
         AST_T* ast_variable_modifier = init_ast_with_line(AST_VARIABLE_MODIFIER, hermes_parser->hermes_lexer->line_n);
         ast_variable_modifier->binop_left = ast_variable;
         ast_variable_modifier->binop_right = hermes_parser_parse_expr(hermes_parser, scope);
-        ast_variable_modifier->binop_operator = type;
+        ast_variable_modifier->binop_operator = operator;
         ast_variable_modifier->scope = (struct hermes_scope_T*) scope;
 
         return ast_variable_modifier;
@@ -537,8 +537,8 @@ AST_T* hermes_parser_parse_term(hermes_parser_T* hermes_parser, hermes_scope_T* 
         hermes_parser->current_token->type == TOKEN_NOT_EQUALS
     )
     {
-        int binop_operator = hermes_parser->current_token->type;
-        hermes_parser_eat(hermes_parser, hermes_parser->current_token->type);
+        token_T* binop_operator = token_copy(hermes_parser->current_token);
+        hermes_parser_eat(hermes_parser, binop_operator->type);
 
         ast_binop = init_ast_with_line(AST_BINOP, hermes_parser->hermes_lexer->line_n);
         
@@ -562,8 +562,8 @@ AST_T* hermes_parser_parse_expr(hermes_parser_T* hermes_parser, hermes_scope_T* 
         hermes_parser->current_token->type == TOKEN_MINUS
     )
     {
-        int binop_operator = hermes_parser->current_token->type;
-        hermes_parser_eat(hermes_parser, hermes_parser->current_token->type);
+        token_T* binop_operator = token_copy(hermes_parser->current_token);
+        hermes_parser_eat(hermes_parser, binop_operator->type);
 
         ast_binop = init_ast_with_line(AST_BINOP, hermes_parser->hermes_lexer->line_n);
         ast_binop->scope = (struct hermes_scope_T*) scope;
