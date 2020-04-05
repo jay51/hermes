@@ -51,7 +51,10 @@ typedef struct AST_STRUCT
     char* string_value;
     char* type_value;
     char* variable_name;
+    int is_ternary;
     struct AST_STRUCT* variable_value;
+    struct AST_STRUCT* ternary_true;
+    struct AST_STRUCT* ternary_false;
     struct AST_STRUCT* variable_type;
     struct AST_STRUCT* variable_assignment_left;
     char* function_name;

@@ -924,6 +924,15 @@ AST_T* hermes_parser_parse_function_definition(hermes_parser_T* hermes_parser, h
 
             ast_variable_definition->variable_value = hermes_parser_parse_expr(hermes_parser, scope);
 
+            if (strcmp(hermes_parser->current_token->value, "?") == 0){
+
+                ast_variable_definition->is_ternary = 1; // true
+                hermes_parser_eat(hermes_parser, TOKEN_TERNARY);
+                ast_variable_definition->ternary_true = hermes_parser_parse_expr(hermes_parser, scope);
+                hermes_parser_eat(hermes_parser, TOKEN_COLON);
+                ast_variable_definition->ternary_false = hermes_parser_parse_expr(hermes_parser, scope);
+            }
+
             /**
              * Performing all the kinds of type-checks we can possibly cover,
              * this is only for reducing type-errors, we cannot possibly cover

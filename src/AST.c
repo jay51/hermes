@@ -55,6 +55,10 @@ AST_T* init_ast(int type)
     AST->iterate_iterable = (void*) 0;
     AST->iterate_function = (void*) 0;
     AST->line_n = 0;
+    AST->is_ternary = 0;
+    AST->ternary_true = (void*) 0;
+    AST->ternary_false = (void*) 0;
+
 
     return AST;
 }

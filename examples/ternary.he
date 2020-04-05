@@ -1,0 +1,29 @@
+
+
+// simple case
+// int x = 3;
+// int x = 3 ? 4 : 5;  
+// string x = "" ? "YES" : "NO" ;
+
+
+string return_true(){
+    string x = "something";
+    return x;
+}
+
+string return_yes(){
+    string x = "YES";
+    return x;
+}
+
+string return_no(){
+    string x = "NO";
+    return x;
+}
+
+string x = return_true() ? return_yes() : return_no()
+
+
+
+
+print(x)

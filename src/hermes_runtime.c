@@ -449,10 +449,84 @@ AST_T* runtime_visit_variable_definition(runtime_T* runtime, AST_T* node)
     {
         if (node->variable_value)
         {
-            if (node->variable_value->type == AST_FUNCTION_CALL)
-                node->saved_function_call = node->variable_value;
+            if(node->is_ternary){
+                if (node->variable_value->type == AST_FUNCTION_CALL)
+                    node->saved_function_call = node->variable_value;
 
-            node->variable_value = runtime_visit(runtime, node->variable_value);
+                AST_T* tmp = runtime_visit(runtime, node->variable_value);
+
+                switch(tmp->type){
+
+                    case AST_OBJECT:
+                        if (node->ternary_true->type == AST_FUNCTION_CALL)
+                            node->saved_function_call = node->ternary_true;
+
+                        node->variable_value = runtime_visit(runtime, node->ternary_true);
+                        break;
+
+                    case AST_STRING:
+                        if (node->ternary_true->type == AST_FUNCTION_CALL)
+                            node->saved_function_call = node->ternary_true;
+
+                        node->variable_value = runtime_visit(runtime, node->ternary_true);
+                        break;
+
+                    case AST_CHAR:
+                        if (node->ternary_true->type == AST_FUNCTION_CALL)
+                            node->saved_function_call = node->ternary_true;
+
+                        node->variable_value = runtime_visit(runtime, node->ternary_true);
+                        break;
+
+                    case AST_FLOAT:
+                        if (node->ternary_true->type == AST_FUNCTION_CALL)
+                            node->saved_function_call = node->ternary_true;
+
+                        node->variable_value = runtime_visit(runtime, node->ternary_true);
+                        break;
+
+                    case AST_LIST:
+                        if (node->ternary_true->type == AST_FUNCTION_CALL)
+                            node->saved_function_call = node->ternary_true;
+
+                        node->variable_value = runtime_visit(runtime, node->ternary_true);
+                        break;
+
+                    case AST_INTEGER:
+                        if (node->ternary_true->type == AST_FUNCTION_CALL)
+                            node->saved_function_call = node->ternary_true;
+
+                        node->variable_value = runtime_visit(runtime, node->ternary_true);
+                        break;
+
+                    case AST_BOOLEAN:
+                        if(tmp->boolean_value)
+                        {
+                            if (node->ternary_true->type == AST_FUNCTION_CALL)
+                                node->saved_function_call = node->ternary_true;
+
+                            node->variable_value = runtime_visit(runtime, node->ternary_true);
+                            break;
+                        }
+                        // else use default case
+                    case AST_NULL:
+                    default:
+                        // else it's falsey
+                        if (node->ternary_false->type == AST_FUNCTION_CALL)
+                            node->saved_function_call = node->ternary_false;
+
+                        node->variable_value = runtime_visit(runtime, node->ternary_false);
+                }
+
+            }
+            else {
+
+                if (node->variable_value->type == AST_FUNCTION_CALL)
+                    node->saved_function_call = node->variable_value;
+
+                node->variable_value = runtime_visit(runtime, node->variable_value);
+            }
+
         }
         else
         {

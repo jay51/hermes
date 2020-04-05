@@ -230,6 +230,8 @@ token_T* hermes_lexer_get_next_token(hermes_lexer_T* hermes_lexer)
             case '(': return hermes_lexer_advance_with_token(hermes_lexer, TOKEN_LPAREN); break;
             case ')': return hermes_lexer_advance_with_token(hermes_lexer, TOKEN_RPAREN); break;
             case ';': return hermes_lexer_advance_with_token(hermes_lexer, TOKEN_SEMI); break;
+            case '?': return hermes_lexer_advance_with_token(hermes_lexer, TOKEN_TERNARY); break;
+            case ':': return hermes_lexer_advance_with_token(hermes_lexer, TOKEN_COLON); break;
             case ',': return hermes_lexer_advance_with_token(hermes_lexer, TOKEN_COMMA); break;
             case '%': return hermes_lexer_advance_with_token(hermes_lexer, TOKEN_PERCENTAGE); break;
             case '.': return hermes_lexer_advance_with_token(hermes_lexer, TOKEN_DOT); break;

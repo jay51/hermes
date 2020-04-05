@@ -37,6 +37,8 @@ typedef struct TOKEN_STRUCT
         TOKEN_LARGER_THAN,
         TOKEN_AND,
         TOKEN_EOF,
+        TOKEN_TERNARY,
+        TOKEN_COLON,
     } type;
 
     char* value;
