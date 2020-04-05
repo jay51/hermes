@@ -371,14 +371,17 @@ void hermes_lexer_skip_block_comment(hermes_lexer_T* hermes_lexer)
          hermes_lexer_advance(hermes_lexer);
      }
 
-     size_t length = hermes_lexer->char_index - initial_index;
-     char buffer[length]; // 'calloc' here if there are concerns that a single string will be big enough to stackoverflow
+     size_t length = hermes_lexer->char_index - initial_index + 1;
+     char* buffer = calloc(length, sizeof(char));
      memcpy(buffer, &hermes_lexer->contents[initial_index], length);
-     buffer[length] = '\0';
+     buffer[length - 1] = '\0';
 
      hermes_lexer_advance(hermes_lexer);
 
-     return init_token(TOKEN_STRING_VALUE, buffer);
+     token_T* token = init_token(TOKEN_STRING_VALUE, buffer);
+     free(buffer);
+
+     return token;
  }
 
 /**
