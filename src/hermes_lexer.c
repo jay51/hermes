@@ -483,18 +483,17 @@ token_T* hermes_lexer_collect_number(hermes_lexer_T* hermes_lexer)
  */
 token_T* hermes_lexer_collect_id(hermes_lexer_T* hermes_lexer)
 {
-    char* buffer = calloc(1, sizeof(char));
-    buffer[0] = '\0';
+    size_t initial_index = hermes_lexer->char_index;
 
     while (isalnum(hermes_lexer->current_char) || hermes_lexer->current_char == '_')
     {
-        char* strchar = hermes_lexer_current_charstr(hermes_lexer);
-        buffer = realloc(buffer, strlen(buffer) + 2);
-        strcat(buffer, strchar);
-        free(strchar);
-
         hermes_lexer_advance(hermes_lexer);
     }
+
+    size_t length = hermes_lexer->char_index - initial_index + 1;
+    char* buffer = calloc(length, sizeof(char));
+    memcpy(buffer, &hermes_lexer->contents[initial_index], length);
+    buffer[length - 1] = '\0';
 
     token_T* token = init_token(TOKEN_ID, buffer);
     free(buffer);
