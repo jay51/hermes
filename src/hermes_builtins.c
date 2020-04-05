@@ -5,6 +5,7 @@
 #include "include/string_utils.h"
 #include "include/io.h"
 #include <string.h>
+#include <time.h>
 
 /**
  * Simple print implementation.
@@ -213,7 +214,7 @@ AST_T* hermes_builtin_function_fopen(AST_T* self, dynamic_list_T* args)
 
     AST_T* ast_obj = init_ast(AST_OBJECT);
     ast_obj->variable_type = init_ast(AST_TYPE);
-    ast_obj->variable_type->type_value = "file";
+    ast_obj->variable_type->type_value = "object";
     ast_obj->object_value = f;
 
     AST_T* fdef_read = init_ast(AST_FUNCTION_DEFINITION);
@@ -433,4 +434,21 @@ AST_T* hermes_builtin_function_char_to_hex(AST_T* self, dynamic_list_T* args)
     ast_string->string_value = str;
 
     return ast_string;
+}
+
+AST_T* hermes_builtin_function_time(AST_T* self, dynamic_list_T* args)
+{
+    AST_T* ast_obj = init_ast(AST_OBJECT);
+    ast_obj->variable_type = init_ast(AST_TYPE);
+    ast_obj->variable_type->type_value = "object";
+
+    AST_T* ast_var = init_ast(AST_VARIABLE_DEFINITION);
+    ast_var->variable_name = hermes_init_str("seconds");
+    AST_T* ast_int = init_ast(AST_INTEGER);
+    ast_int->int_value = time(NULL);
+    ast_var->variable_value = ast_int;
+
+    dynamic_list_append(ast_obj->object_children, ast_var);
+
+    return ast_obj;
 }

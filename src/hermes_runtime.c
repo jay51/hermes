@@ -227,6 +227,11 @@ runtime_T* init_runtime()
     CHAR_TO_HEX_FUNCTION_DEFINITION->fptr = hermes_builtin_function_char_to_hex;
     dynamic_list_append(runtime->scope->function_definitions, CHAR_TO_HEX_FUNCTION_DEFINITION);
 
+    AST_T* TIME_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);
+    TIME_FUNCTION_DEFINITION->function_name = create_str("time");
+    TIME_FUNCTION_DEFINITION->fptr = hermes_builtin_function_time;
+    dynamic_list_append(runtime->scope->function_definitions, TIME_FUNCTION_DEFINITION);
+
     // LIST FUNCTIONS
 
     AST_T* LIST_ADD_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);
