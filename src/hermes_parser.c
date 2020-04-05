@@ -592,6 +592,11 @@ AST_T* hermes_parser_parse_expr(hermes_parser_T* hermes_parser, hermes_scope_T* 
         node = ast_binop;
     }
 
+    if (node->type == AST_BINOP && hermes_parser->current_token->type == TOKEN_QUESTION)
+    {
+        return hermes_parser_parse_ternary(hermes_parser, scope, node);
+    }
+
     return node;
 }
 
@@ -686,6 +691,22 @@ AST_T* hermes_parser_parse_if(hermes_parser_T* hermes_parser, hermes_scope_T* sc
     }
 
     return ast_if;
+}
+
+AST_T* hermes_parser_parse_ternary(hermes_parser_T* hermes_parser, hermes_scope_T* scope, AST_T* expr)
+{
+    AST_T* ternary = init_ast_with_line(AST_TERNARY, hermes_parser->hermes_lexer->line_n);
+    ternary->ternary_expr = expr;
+
+    hermes_parser_eat(hermes_parser, TOKEN_QUESTION);
+
+    ternary->ternary_body = hermes_parser_parse_term(hermes_parser, scope);
+    
+    hermes_parser_eat(hermes_parser, TOKEN_COLON);
+    
+    ternary->ternary_else_body = hermes_parser_parse_term(hermes_parser, scope);
+
+    return ternary;
 }
 
 AST_T* hermes_parser_parse_new(hermes_parser_T* hermes_parser, hermes_scope_T* scope)

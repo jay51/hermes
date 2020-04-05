@@ -275,6 +275,7 @@ AST_T* runtime_visit(runtime_T* runtime, AST_T* node)
         case AST_CONTINUE: return runtime_visit_continue(runtime, node); break;
         case AST_RETURN: return runtime_visit_return(runtime, node); break;
         case AST_IF: return runtime_visit_if(runtime, node); break;
+        case AST_TERNARY: return runtime_visit_ternary(runtime, node); break;
         case AST_WHILE: return runtime_visit_while(runtime, node); break;
         case AST_NEW: return runtime_visit_new(runtime, node); break;
         case AST_ITERATE: return runtime_visit_iterate(runtime, node); break;
@@ -1676,6 +1677,12 @@ AST_T* runtime_visit_if(runtime_T* runtime, AST_T* node)
     }
 
     return node;
+}
+
+AST_T* runtime_visit_ternary(runtime_T* runtime, AST_T* node)
+{
+    return _boolean_evaluation(runtime_visit(runtime, node->ternary_expr)) ?
+        runtime_visit(runtime, node->ternary_body) : runtime_visit(runtime, node->ternary_else_body);
 }
 
 AST_T* runtime_visit_while(runtime_T* runtime, AST_T* node)

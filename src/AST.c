@@ -47,10 +47,18 @@ AST_T* init_ast(int type)
     AST->composition_children = AST->type == AST_FUNCTION_DEFINITION ? init_dynamic_list(sizeof(struct AST_STRUCT*)) : (void*) 0;
     AST->function_definition_body = (void*) 0;
     AST->function_definition_type = (void*) 0;
+
+    /* ==== if ==== */
     AST->if_expr = (void*) 0;
     AST->if_body = (void*) 0;
     AST->if_otherwise = (void*) 0;
     AST->else_body = (void*) 0;
+
+    /* ==== ternary ==== */
+    AST->ternary_expr = (void*) 0;
+    AST->ternary_body = (void*) 0;
+    AST->ternary_else_body = (void*) 0;
+
     AST->while_expr = (void*) 0;
     AST->while_body = (void*) 0;
     AST->return_value = (void*) 0;
@@ -213,6 +221,15 @@ void ast_free(AST_T* ast)
 
     if (ast->else_body)
         ast_free(ast->else_body);
+
+    if (ast->ternary_expr)
+        ast_free(ast->ternary_expr);
+    
+    if (ast->ternary_body)
+        ast_free(ast->ternary_body);
+    
+    if (ast->ternary_else_body)
+        ast_free(ast->ternary_else_body);
 
     if (ast->while_expr)
         ast_free(ast->while_expr);
