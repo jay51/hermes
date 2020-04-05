@@ -214,7 +214,7 @@ AST_T* hermes_builtin_function_fopen(AST_T* self, dynamic_list_T* args)
 
     AST_T* ast_obj = init_ast(AST_OBJECT);
     ast_obj->variable_type = init_ast(AST_TYPE);
-    ast_obj->variable_type->type_value = "object";
+    ast_obj->variable_type->type_value = hermes_init_str("object");
     ast_obj->object_value = f;
 
     AST_T* fdef_read = init_ast(AST_FUNCTION_DEFINITION);
@@ -440,7 +440,7 @@ AST_T* hermes_builtin_function_time(AST_T* self, dynamic_list_T* args)
 {
     AST_T* ast_obj = init_ast(AST_OBJECT);
     ast_obj->variable_type = init_ast(AST_TYPE);
-    ast_obj->variable_type->type_value = "object";
+    ast_obj->variable_type->type_value = hermes_init_str("object");
 
     AST_T* ast_var = init_ast(AST_VARIABLE_DEFINITION);
     ast_var->variable_name = hermes_init_str("seconds");
