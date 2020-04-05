@@ -29,5 +29,7 @@ AST_T* hermes_builtin_function_char_to_dec(AST_T* self, dynamic_list_T* args);
 
 AST_T* hermes_builtin_function_char_to_hex(AST_T* self, dynamic_list_T* args);
 
+AST_T* hermes_builtin_function_time(AST_T* self, dynamic_list_T* args);
+
 AST_T* INITIALIZED_NOOP;
 #endif

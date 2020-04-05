@@ -4,3 +4,4 @@ string x = file.read();
 print(x);
 
 fclose(file);
+

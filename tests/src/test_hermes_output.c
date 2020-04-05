@@ -1,7 +1,7 @@
 #include "include/main.h"
-#include "include/utils.h"
 #include "../../src/include/hermes_parser.h"
 #include "../../src/include/hermes_runtime.h"
+#include "../../src/include/io.h"
 #include <string.h>
 
 
@@ -11,7 +11,7 @@ static char* getstdout(const char* source)
     printf("---- * %s * ----\n", source);
 
     hermes_lexer_T* hermes_lexer = init_hermes_lexer(
-        get_file_contents(source)
+        hermes_read_file(source)
     );
     
     hermes_parser_T* parser = init_hermes_parser(hermes_lexer);

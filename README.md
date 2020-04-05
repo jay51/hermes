@@ -130,6 +130,7 @@ wad(s, "functions");
 > This will create a `functions.dat` file.
 > To read the use case for these `.dat` files, please [read this](DAT.md).
 
+
 ## Built-in methods
 * print
 * aprint
@@ -141,6 +142,7 @@ wad(s, "functions");
 * fputs
 * fclose
 * input
+* time
 * free
 
 ### print
@@ -216,6 +218,14 @@ fclose(file);
 string a = input("Say something: ");
 
 print("You said: " + a);
+```
+
+### time
+> Get current timestamp
+```C
+object stamp = time();
+
+print(stamp.seconds);
 ```
 
 ### free
