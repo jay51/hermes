@@ -26,6 +26,7 @@ typedef struct AST_STRUCT
         AST_COMPOUND,
         AST_TYPE,
         AST_BINOP,
+        AST_UNOP,
         AST_NOOP,
         AST_BREAK,
         AST_RETURN,
@@ -55,9 +56,16 @@ typedef struct AST_STRUCT
     struct AST_STRUCT* variable_type;
     struct AST_STRUCT* variable_assignment_left;
     char* function_name;
+
+    /* ==== binop ==== */
     struct AST_STRUCT* binop_left;
     struct AST_STRUCT* binop_right;
     token_T* binop_operator;
+
+    /* ==== unop ==== */
+    struct AST_STRUCT* unop_right;
+    token_T* unop_operator;
+
     dynamic_list_T* compound_value;
     dynamic_list_T* function_call_arguments;
     dynamic_list_T* function_definition_arguments;

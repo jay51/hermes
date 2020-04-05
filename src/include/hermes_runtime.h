@@ -54,6 +54,8 @@ AST_T* runtime_visit_list_access(runtime_T* runtime, AST_T* node);
 
 AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node);
 
+AST_T* runtime_visit_unop(runtime_T* runtime, AST_T* node);
+
 AST_T* runtime_visit_noop(runtime_T* runtime, AST_T* node);
 
 AST_T* runtime_visit_break(runtime_T* runtime, AST_T* node);
