@@ -24,9 +24,16 @@ AST_T* init_ast(int type)
     AST->variable_type = (void*) 0;
     AST->variable_assignment_left = (void*) 0;
     AST->function_name = (void*) 0;
+
+    /* ==== binop ==== */
     AST->binop_left = (void*) 0;
     AST->binop_right = (void*) 0;
     AST->binop_operator = 0;
+
+    /* ==== unop ==== */
+    AST->unop_right = (void*) 0;
+    AST->unop_operator = 0;
+
     AST->compound_value = AST->type == AST_COMPOUND ? init_dynamic_list(sizeof(struct AST_STRUCT*)) : (void*) 0;
     AST->function_call_arguments = AST->type == AST_FUNCTION_CALL ? init_dynamic_list(sizeof(struct AST_STRUCT*)) : (void*) 0;
     AST->function_definition_arguments = AST->type == AST_FUNCTION_DEFINITION ? init_dynamic_list(sizeof(struct AST_STRUCT*)) : (void*) 0;
@@ -40,10 +47,18 @@ AST_T* init_ast(int type)
     AST->composition_children = AST->type == AST_FUNCTION_DEFINITION ? init_dynamic_list(sizeof(struct AST_STRUCT*)) : (void*) 0;
     AST->function_definition_body = (void*) 0;
     AST->function_definition_type = (void*) 0;
+
+    /* ==== if ==== */
     AST->if_expr = (void*) 0;
     AST->if_body = (void*) 0;
     AST->if_otherwise = (void*) 0;
     AST->else_body = (void*) 0;
+
+    /* ==== ternary ==== */
+    AST->ternary_expr = (void*) 0;
+    AST->ternary_body = (void*) 0;
+    AST->ternary_else_body = (void*) 0;
+
     AST->while_expr = (void*) 0;
     AST->while_body = (void*) 0;
     AST->return_value = (void*) 0;
@@ -111,6 +126,9 @@ void ast_free(AST_T* ast)
 
     if (ast->binop_right)
         ast_free(ast->binop_right);
+
+    if (ast->unop_right)
+        ast_free(ast->unop_right);
 
     //if (ast->function_definition_body)
     //    ast_free(ast->function_definition_body);
@@ -203,6 +221,15 @@ void ast_free(AST_T* ast)
 
     if (ast->else_body)
         ast_free(ast->else_body);
+
+    if (ast->ternary_expr)
+        ast_free(ast->ternary_expr);
+    
+    if (ast->ternary_body)
+        ast_free(ast->ternary_body);
+    
+    if (ast->ternary_else_body)
+        ast_free(ast->ternary_else_body);
 
     if (ast->while_expr)
         ast_free(ast->while_expr);

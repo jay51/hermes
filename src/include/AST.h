@@ -26,10 +26,12 @@ typedef struct AST_STRUCT
         AST_COMPOUND,
         AST_TYPE,
         AST_BINOP,
+        AST_UNOP,
         AST_NOOP,
         AST_BREAK,
         AST_RETURN,
         AST_CONTINUE,
+        AST_TERNARY,
         AST_IF,
         AST_ELSE,
         AST_WHILE,
@@ -55,9 +57,16 @@ typedef struct AST_STRUCT
     struct AST_STRUCT* variable_type;
     struct AST_STRUCT* variable_assignment_left;
     char* function_name;
+
+    /* ==== binop ==== */
     struct AST_STRUCT* binop_left;
     struct AST_STRUCT* binop_right;
     token_T* binop_operator;
+
+    /* ==== unop ==== */
+    struct AST_STRUCT* unop_right;
+    token_T* unop_operator;
+
     dynamic_list_T* compound_value;
     dynamic_list_T* function_call_arguments;
     dynamic_list_T* function_definition_arguments;
@@ -69,10 +78,18 @@ typedef struct AST_STRUCT
     dynamic_list_T* composition_children;
     struct AST_STRUCT* function_definition_body;
     struct AST_STRUCT* function_definition_type;
+
+    /* ==== if ==== */
     struct AST_STRUCT* if_expr;
     struct AST_STRUCT* if_body;
     struct AST_STRUCT* if_otherwise;
     struct AST_STRUCT* else_body;
+    
+    /* ==== ternary ==== */
+    struct AST_STRUCT* ternary_expr;
+    struct AST_STRUCT* ternary_body;
+    struct AST_STRUCT* ternary_else_body;
+
     struct AST_STRUCT* while_expr;
     struct AST_STRUCT* while_body;
     struct AST_STRUCT* return_value;
