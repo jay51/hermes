@@ -31,6 +31,7 @@ typedef struct AST_STRUCT
         AST_BREAK,
         AST_RETURN,
         AST_CONTINUE,
+        AST_TERNARY,
         AST_IF,
         AST_ELSE,
         AST_WHILE,
@@ -77,10 +78,18 @@ typedef struct AST_STRUCT
     dynamic_list_T* composition_children;
     struct AST_STRUCT* function_definition_body;
     struct AST_STRUCT* function_definition_type;
+
+    /* ==== if ==== */
     struct AST_STRUCT* if_expr;
     struct AST_STRUCT* if_body;
     struct AST_STRUCT* if_otherwise;
     struct AST_STRUCT* else_body;
+    
+    /* ==== ternary ==== */
+    struct AST_STRUCT* ternary_expr;
+    struct AST_STRUCT* ternary_body;
+    struct AST_STRUCT* ternary_else_body;
+
     struct AST_STRUCT* while_expr;
     struct AST_STRUCT* while_body;
     struct AST_STRUCT* return_value;

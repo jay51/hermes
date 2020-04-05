@@ -238,6 +238,8 @@ token_T* hermes_lexer_get_next_token(hermes_lexer_T* hermes_lexer)
             case '<': return hermes_lexer_advance_with_token(hermes_lexer, TOKEN_LESS_THAN); break;
             case '>': return hermes_lexer_advance_with_token(hermes_lexer, TOKEN_LARGER_THAN); break;
             case '@': return hermes_lexer_advance_with_token(hermes_lexer, TOKEN_ANON_ID); break;
+            case '?': return hermes_lexer_advance_with_token(hermes_lexer, TOKEN_QUESTION); break;
+            case ':': return hermes_lexer_advance_with_token(hermes_lexer, TOKEN_COLON); break;
             case '\0': return init_token(TOKEN_EOF, "\0"); break;
             default: printf("[Line %d] Unexpected %c\n", hermes_lexer->line_n, hermes_lexer->current_char); exit(1); break;
         }
