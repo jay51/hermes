@@ -1,6 +1,5 @@
 #include "include/hermes_lexer.h"
 #include "include/string_utils.h"
-#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -15,7 +14,10 @@
 hermes_lexer_T* init_hermes_lexer(char* contents)
 {
     hermes_lexer_T* hermes_lexer = calloc(1, sizeof(struct HERMES_LEXER_STRUCT));
+
     hermes_lexer->contents = contents;
+    hermes_lexer->contents_length = strlen(contents);
+
     hermes_lexer->char_index = 0;
     hermes_lexer->line_n = 1;
     hermes_lexer->current_char = hermes_lexer->contents[hermes_lexer->char_index];
@@ -43,7 +45,7 @@ void hermes_lexer_free(hermes_lexer_T* hermes_lexer)
  */
 token_T* hermes_lexer_get_next_token(hermes_lexer_T* hermes_lexer)
 {
-    while (hermes_lexer->current_char != '\0' && hermes_lexer->char_index < strlen(hermes_lexer->contents))
+    while (hermes_lexer->current_char != '\0' && hermes_lexer->char_index < hermes_lexer->contents_length)
     {
         if (hermes_lexer->current_char == ' ' || (int) hermes_lexer->current_char == 10 || (int) hermes_lexer->current_char == 13)
             hermes_lexer_skip_whitespace(hermes_lexer);
@@ -275,7 +277,7 @@ void hermes_lexer_advance(hermes_lexer_T* hermes_lexer)
     if (hermes_lexer->current_char == '\n' || hermes_lexer->current_char == 10)
         hermes_lexer->line_n += 1;
 
-    if (hermes_lexer->current_char != '\0' && hermes_lexer->char_index < strlen(hermes_lexer->contents))
+    if (hermes_lexer->current_char != '\0' && hermes_lexer->char_index < hermes_lexer->contents_length)
     {
         hermes_lexer->char_index += 1;
         hermes_lexer->current_char = hermes_lexer->contents[hermes_lexer->char_index];
