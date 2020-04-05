@@ -1,13 +1,13 @@
 #include "include/main.h"
-#include "include/utils.h"
 #include "include/test_hermes_lexer.h"
 #include "../../src/include/hermes_lexer.h"
+#include "../../src/include/io.h"
 
 
 void test_hermes_lexer_behavior(void** state)
 {
     hermes_lexer_T* hermes_lexer = init_hermes_lexer(
-        get_file_contents("sources/test_lexer.he")
+        hermes_read_file("sources/test_lexer.he")
     );
 
     assert_true(hermes_lexer != NULL);
