@@ -1,11 +1,14 @@
 #ifndef HERMES_LEXER_H
 #define HERMES_LEXER_H
 #include "token.h"
+#include <stdlib.h>
 
 
 typedef struct HERMES_LEXER_STRUCT
 {
     char* contents;
+    size_t contents_length;
+
     char current_char;
     unsigned int char_index;
     unsigned int line_n;
