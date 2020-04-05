@@ -449,6 +449,23 @@ AST_T* hermes_parser_parse_list(hermes_parser_T* hermes_parser, hermes_scope_T* 
 
 AST_T* hermes_parser_parse_factor(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
+    while (
+        hermes_parser->current_token->type == TOKEN_PLUS ||
+        hermes_parser->current_token->type == TOKEN_MINUS
+    )
+    {
+        token_T* unop_operator = token_copy(hermes_parser->current_token);
+        hermes_parser_eat(hermes_parser, unop_operator->type);
+
+        AST_T* ast_unop = init_ast_with_line(AST_UNOP, hermes_parser->hermes_lexer->line_n);
+        ast_unop->scope = (struct hermes_scope_T*) scope;
+
+        ast_unop->unop_operator = unop_operator;
+        ast_unop->unop_right = hermes_parser_parse_term(hermes_parser, scope);
+
+        return ast_unop;
+    }
+
     if (strcmp(hermes_parser->current_token->value, VALUE_FALSE) == 0 || strcmp(hermes_parser->current_token->value, VALUE_TRUE) == 0)
         return hermes_parser_parse_boolean(hermes_parser, scope);
 

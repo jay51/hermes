@@ -269,6 +269,7 @@ AST_T* runtime_visit(runtime_T* runtime, AST_T* node)
         case AST_ATTRIBUTE_ACCESS: return runtime_visit_attribute_access(runtime, node); break;
         case AST_LIST_ACCESS: return runtime_visit_list_access(runtime, node); break;
         case AST_BINOP: return runtime_visit_binop(runtime, node); break;
+        case AST_UNOP: return runtime_visit_unop(runtime, node); break;
         case AST_NOOP: return runtime_visit_noop(runtime, node); break;
         case AST_BREAK: return runtime_visit_break(runtime, node); break;
         case AST_CONTINUE: return runtime_visit_continue(runtime, node); break;
@@ -1603,6 +1604,34 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
     }
 
     return node;
+}
+
+AST_T* runtime_visit_unop(runtime_T* runtime, AST_T* node)
+{
+    AST_T* right = runtime_visit(runtime, node->unop_right);
+
+    AST_T* return_value = INITIALIZED_NOOP;
+
+    switch (node->unop_operator->type)
+    {
+        case TOKEN_MINUS: {
+            if (right->type == AST_INTEGER)
+            {
+                return_value = init_ast(AST_INTEGER);
+                return_value->int_value = -right->int_value;
+            }          
+        } break;
+        case TOKEN_PLUS: {
+            if (right->type == AST_INTEGER)
+            {
+                return_value = init_ast(AST_INTEGER);
+                return_value->int_value = +right->int_value;
+            }          
+        } break;
+        default: {printf("Error: [Line %d] `%s` is not a valid operator\n", node->line_n, node->unop_operator->value); exit(1);} break;
+    }
+
+    return return_value;
 }
 
 AST_T* runtime_visit_noop(runtime_T* runtime, AST_T* node)
