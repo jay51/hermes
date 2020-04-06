@@ -1548,6 +1548,13 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
 
                 return return_value;
             }
+            if (left->type == AST_STRING && right->type == AST_STRING)
+            {
+                return_value = init_ast(AST_BOOLEAN);
+                return_value->boolean_value = (strcmp(left->string_value, right->string_value) == 0);
+
+                return return_value;
+            }
         } break;
         case TOKEN_NOT_EQUALS: {
             if (left->type == AST_INTEGER && right->type == AST_INTEGER)
