@@ -422,16 +422,24 @@ AST_T* runtime_visit_variable(runtime_T* runtime, AST_T* node)
 }
 
 AST_T* runtime_visit_variable_definition(runtime_T* runtime, AST_T* node)
-{ 
-    AST_T* vardef_global = get_variable_definition_by_name(
-        runtime,
-        runtime->scope,
-        node->variable_name
-    );
-
-    if (vardef_global != (void*) 0)
+{
+    if ((hermes_scope_T*)node->scope == (hermes_scope_T*)runtime->scope)
     {
-        _multiple_variable_definitions_error(node->line_n, node->variable_name);
+        /**
+         * Only check for global scope variable collisions if the node scope
+         * is the same as global scope.
+         */
+
+        AST_T* vardef_global = get_variable_definition_by_name(
+            runtime,
+            runtime->scope,
+            node->variable_name
+        );
+
+        if (vardef_global != (void*) 0)
+        {
+            _multiple_variable_definitions_error(node->line_n, node->variable_name);
+        }
     }
    
     if (node->scope)

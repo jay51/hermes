@@ -55,4 +55,5 @@ void test_hermes_output(void** state)
     assert_true(strcmp(getstdout("sources/output/unary.he"), "-1\n") == 0);
     assert_true(strcmp(getstdout("sources/output/if_no_brace.he"), "10\n") == 0);
     assert_true(strcmp(getstdout("sources/output/ternary.he"), "David\n") == 0);
+    assert_true(strcmp(getstdout("sources/output/scope.he"), "else\n") == 0);
 }
