@@ -8,20 +8,32 @@
 
 string return_true(){
     string x = "something";
+
+    // equal strings comp is not working
+    // if(x == "something"){
+    //    print("equal")
+    // }
+
     return x;
 }
 
 string return_yes(){
-    string x = "YES";
-    return x;
+    string k = "YES";
+    return k;
 }
 
 string return_no(){
-    string x = "NO";
-    return x;
+    string g = "NO";
+    return g;
 }
 
+
 string x = return_true() ? return_yes() : return_no()
+
+// x = "yes"  ? "yes" : "no"
+
+// return_no() is mixing scope vars
+x = return_no() == true ? "yes" : "no"
 
 
 

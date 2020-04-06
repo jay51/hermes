@@ -319,9 +319,19 @@ AST_T* hermes_parser_parse_variable(hermes_parser_T* hermes_parser, hermes_scope
     {
         hermes_parser_eat(hermes_parser, TOKEN_EQUALS);
         AST_T* ast_assign = init_ast_with_line(AST_VARIABLE_ASSIGNMENT, hermes_parser->hermes_lexer->line_n);
+
         ast_assign->variable_assignment_left = ast_variable;
         ast_assign->variable_value = hermes_parser_parse_expr(hermes_parser, scope);
         ast_assign->scope = (struct hermes_scope_T*) scope;
+
+
+        if (strcmp(hermes_parser->current_token->value, "?") == 0){
+            ast_assign->is_ternary = 1;
+            hermes_parser_eat(hermes_parser, TOKEN_TERNARY);
+            ast_assign->ternary_true = hermes_parser_parse_expr(hermes_parser, scope);
+            hermes_parser_eat(hermes_parser, TOKEN_COLON);
+            ast_assign->ternary_false = hermes_parser_parse_expr(hermes_parser, scope);
+        }
 
         return ast_assign;
     }
