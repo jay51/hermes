@@ -1,6 +1,5 @@
 #include "include/hermes_lexer.h"
 #include "include/string_utils.h"
-#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -15,7 +14,10 @@
 hermes_lexer_T* init_hermes_lexer(char* contents)
 {
     hermes_lexer_T* hermes_lexer = calloc(1, sizeof(struct HERMES_LEXER_STRUCT));
+
     hermes_lexer->contents = contents;
+    hermes_lexer->contents_length = strlen(contents);
+
     hermes_lexer->char_index = 0;
     hermes_lexer->line_n = 1;
     hermes_lexer->current_char = hermes_lexer->contents[hermes_lexer->char_index];
@@ -43,7 +45,7 @@ void hermes_lexer_free(hermes_lexer_T* hermes_lexer)
  */
 token_T* hermes_lexer_get_next_token(hermes_lexer_T* hermes_lexer)
 {
-    while (hermes_lexer->current_char != '\0' && hermes_lexer->char_index < strlen(hermes_lexer->contents))
+    while (hermes_lexer->current_char != '\0' && hermes_lexer->char_index < hermes_lexer->contents_length)
     {
         if (hermes_lexer->current_char == ' ' || (int) hermes_lexer->current_char == 10 || (int) hermes_lexer->current_char == 13)
             hermes_lexer_skip_whitespace(hermes_lexer);
@@ -120,7 +122,7 @@ token_T* hermes_lexer_get_next_token(hermes_lexer_T* hermes_lexer)
         if (hermes_lexer->current_char == '&')
         {
             char* value = hermes_lexer_current_charstr(hermes_lexer);
-            
+
             hermes_lexer_advance(hermes_lexer);
 
             if (hermes_lexer->current_char == '&')  // &&
@@ -131,7 +133,7 @@ token_T* hermes_lexer_get_next_token(hermes_lexer_T* hermes_lexer)
                 free(strchar);
 
                 hermes_lexer_advance(hermes_lexer);
-                
+
                 return init_token(TOKEN_AND, value);
             }
         }
@@ -139,7 +141,7 @@ token_T* hermes_lexer_get_next_token(hermes_lexer_T* hermes_lexer)
         if (hermes_lexer->current_char == '=')
         {
             char* value = hermes_lexer_current_charstr(hermes_lexer);
-            
+
             hermes_lexer_advance(hermes_lexer);
 
             if (hermes_lexer->current_char == '=')  // ==
@@ -150,7 +152,7 @@ token_T* hermes_lexer_get_next_token(hermes_lexer_T* hermes_lexer)
                 free(strchar);
 
                 hermes_lexer_advance(hermes_lexer);
-                
+
                 token_T* token = init_token(TOKEN_EQUALS_EQUALS, value);
                 free(value);
                 return token;
@@ -166,7 +168,7 @@ token_T* hermes_lexer_get_next_token(hermes_lexer_T* hermes_lexer)
         if (hermes_lexer->current_char == '!')
         {
             char* value = hermes_lexer_current_charstr(hermes_lexer);
-            
+
             hermes_lexer_advance(hermes_lexer);
 
             if (hermes_lexer->current_char == '=')  // !=
@@ -177,7 +179,7 @@ token_T* hermes_lexer_get_next_token(hermes_lexer_T* hermes_lexer)
                 free(strchar);
 
                 hermes_lexer_advance(hermes_lexer);
-                
+
                 token_T* token = init_token(TOKEN_NOT_EQUALS, value);
                 free(value);
                 return token;
@@ -197,7 +199,7 @@ token_T* hermes_lexer_get_next_token(hermes_lexer_T* hermes_lexer)
 
         if (hermes_lexer->current_char == '/')
         {
-            hermes_lexer_advance(hermes_lexer); 
+            hermes_lexer_advance(hermes_lexer);
 
             if (hermes_lexer->current_char == '/')
             {
@@ -238,6 +240,8 @@ token_T* hermes_lexer_get_next_token(hermes_lexer_T* hermes_lexer)
             case '<': return hermes_lexer_advance_with_token(hermes_lexer, TOKEN_LESS_THAN); break;
             case '>': return hermes_lexer_advance_with_token(hermes_lexer, TOKEN_LARGER_THAN); break;
             case '@': return hermes_lexer_advance_with_token(hermes_lexer, TOKEN_ANON_ID); break;
+            case '?': return hermes_lexer_advance_with_token(hermes_lexer, TOKEN_QUESTION); break;
+            case ':': return hermes_lexer_advance_with_token(hermes_lexer, TOKEN_COLON); break;
             case '\0': return init_token(TOKEN_EOF, "\0"); break;
             default: printf("[Line %d] Unexpected %c\n", hermes_lexer->line_n, hermes_lexer->current_char); exit(1); break;
         }
@@ -263,7 +267,7 @@ token_T* hermes_lexer_advance_with_token(hermes_lexer_T* hermes_lexer, int type)
 
     // ensures that the lexer state is correct if exited through this function.
     hermes_lexer_skip_whitespace(hermes_lexer);
-    
+
     return token;
 }
 
@@ -277,7 +281,7 @@ void hermes_lexer_advance(hermes_lexer_T* hermes_lexer)
     if (hermes_lexer->current_char == '\n' || hermes_lexer->current_char == 10)
         hermes_lexer->line_n += 1;
 
-    if (hermes_lexer->current_char != '\0' && hermes_lexer->char_index < strlen(hermes_lexer->contents))
+    if (hermes_lexer->current_char != '\0' && hermes_lexer->char_index < hermes_lexer->contents_length)
     {
         hermes_lexer->char_index += 1;
         hermes_lexer->current_char = hermes_lexer->contents[hermes_lexer->char_index];
@@ -356,35 +360,35 @@ void hermes_lexer_skip_block_comment(hermes_lexer_T* hermes_lexer)
  *
  * @return token_T*
  */
-token_T* hermes_lexer_collect_string(hermes_lexer_T* hermes_lexer)
-{
-    hermes_lexer_expect_char(hermes_lexer, '"');
-    hermes_lexer_advance(hermes_lexer);
-    char* buffer = calloc(1, sizeof(char));
-    buffer[0] = '\0';
+ token_T* hermes_lexer_collect_string(hermes_lexer_T* hermes_lexer)
+ {
+     hermes_lexer_expect_char(hermes_lexer, '"');
+     hermes_lexer_advance(hermes_lexer);
 
-    while (hermes_lexer->current_char != '"')
-    {
-        if (hermes_lexer->current_char == '\0')
-        {
-            printf("[Line %d] Missing closing quotation mark\n", hermes_lexer->line_n); exit(1);
-        }
+     size_t initial_index = hermes_lexer->char_index;
 
-        char* strchar = hermes_lexer_current_charstr(hermes_lexer);
-        buffer = realloc(buffer, strlen(buffer) + 2);
-        strcat(buffer, strchar);
-        free(strchar);
+     while (hermes_lexer->current_char != '"')
+     {
+         if (hermes_lexer->current_char == '\0')
+         {
+             printf("[Line %d] Missing closing quotation mark\n", hermes_lexer->line_n); exit(1);
+         }
 
-        hermes_lexer_advance(hermes_lexer);
-    }
+         hermes_lexer_advance(hermes_lexer);
+     }
 
-    hermes_lexer_advance(hermes_lexer);
+     size_t length = hermes_lexer->char_index - initial_index + 1;
+     char* buffer = calloc(length, sizeof(char));
+     memcpy(buffer, &hermes_lexer->contents[initial_index], length);
+     buffer[length - 1] = '\0';
 
-    token_T* token = init_token(TOKEN_STRING_VALUE, buffer);
-    free(buffer);
+     hermes_lexer_advance(hermes_lexer);
 
-    return token;
-}
+     token_T* token = init_token(TOKEN_STRING_VALUE, buffer);
+     free(buffer);
+
+     return token;
+ }
 
 /**
  * Collect a char token
@@ -469,7 +473,7 @@ token_T* hermes_lexer_collect_number(hermes_lexer_T* hermes_lexer)
 
             hermes_lexer_advance(hermes_lexer);
         }
-    } 
+    }
 
     return init_token(type, buffer);
 }
@@ -483,18 +487,17 @@ token_T* hermes_lexer_collect_number(hermes_lexer_T* hermes_lexer)
  */
 token_T* hermes_lexer_collect_id(hermes_lexer_T* hermes_lexer)
 {
-    char* buffer = calloc(1, sizeof(char));
-    buffer[0] = '\0';
+    size_t initial_index = hermes_lexer->char_index;
 
     while (isalnum(hermes_lexer->current_char) || hermes_lexer->current_char == '_')
     {
-        char* strchar = hermes_lexer_current_charstr(hermes_lexer);
-        buffer = realloc(buffer, strlen(buffer) + 2);
-        strcat(buffer, strchar);
-        free(strchar);
-
         hermes_lexer_advance(hermes_lexer);
     }
+
+    size_t length = hermes_lexer->char_index - initial_index + 1;
+    char* buffer = calloc(length, sizeof(char));
+    memcpy(buffer, &hermes_lexer->contents[initial_index], length);
+    buffer[length - 1] = '\0';
 
     token_T* token = init_token(TOKEN_ID, buffer);
     free(buffer);

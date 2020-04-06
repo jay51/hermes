@@ -1,5 +1,6 @@
 
 
+
 // simple case
 // int x = 3;
 // int x = 3 ? 4 : 5;  
@@ -39,3 +40,10 @@ x = return_no() == true ? "yes" : "no"
 
 
 print(x)
+
+int q = 0;
+
+string name = q > 3 ? "John" : "David";
+
+print(name);
+

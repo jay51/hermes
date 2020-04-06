@@ -1,7 +1,7 @@
 #include "include/main.h"
-#include "include/utils.h"
 #include "../../src/include/hermes_parser.h"
 #include "../../src/include/hermes_runtime.h"
+#include "../../src/include/io.h"
 #include <string.h>
 
 
@@ -11,7 +11,7 @@ static char* getstdout(const char* source)
     printf("---- * %s * ----\n", source);
 
     hermes_lexer_T* hermes_lexer = init_hermes_lexer(
-        get_file_contents(source)
+        hermes_read_file(source)
     );
     
     hermes_parser_T* parser = init_hermes_parser(hermes_lexer);
@@ -52,5 +52,7 @@ void test_hermes_output(void** state)
     assert_true(strcmp(getstdout("sources/output/else.he"), "it's not\nhello world\n") == 0);
     assert_true(strcmp(getstdout("sources/output/break.he"), "5\n") == 0);
     assert_true(strcmp(getstdout("sources/output/continue.he"), "1\n2\n4\n5\n6\n") == 0);
+    assert_true(strcmp(getstdout("sources/output/unary.he"), "-1\n") == 0);
     assert_true(strcmp(getstdout("sources/output/if_no_brace.he"), "10\n") == 0);
+    assert_true(strcmp(getstdout("sources/output/ternary.he"), "David\n") == 0);
 }
