@@ -249,6 +249,8 @@ somefunction(void @(){ print("Hello from anonymous function"); });
 ## Available statements
 * new
 * iterate
+* break
+* continue
 
 ### new example
 ```C
