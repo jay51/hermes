@@ -52,8 +52,12 @@ static char* create_str(const char* str)
     return newstr;
 }
 
-static void collect_and_sweep_garbage(dynamic_list_T* old_def_list, hermes_scope_T* scope)
+static void collect_and_sweep_garbage(runtime_T* runtime, dynamic_list_T* old_def_list, hermes_scope_T* scope)
 {
+    // do not sweep global scope
+    if (scope == runtime->scope)
+        return;
+
     dynamic_list_T* garbage = init_dynamic_list(sizeof(AST_T*));
 
     for (int i = 0; i < scope->variable_definitions->size; i++)
@@ -998,12 +1002,12 @@ AST_T* runtime_visit_compound(runtime_T* runtime, AST_T* node)
                 {
                     AST_T* ret_val = runtime_visit(runtime, visited->return_value);
 
-                    collect_and_sweep_garbage(old_def_list, scope);
+                    collect_and_sweep_garbage(runtime, old_def_list, scope);
                     return ret_val;
                 }
                 else
                 {
-                    collect_and_sweep_garbage(old_def_list, scope);
+                    collect_and_sweep_garbage(runtime, old_def_list, scope);
                     return (void*) 0;
                 }
             }
@@ -1015,7 +1019,7 @@ AST_T* runtime_visit_compound(runtime_T* runtime, AST_T* node)
         }
     } 
     
-    collect_and_sweep_garbage(old_def_list, scope);
+    collect_and_sweep_garbage(runtime, old_def_list, scope);
 
     return node;
 }
