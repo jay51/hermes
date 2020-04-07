@@ -592,10 +592,8 @@ AST_T* hermes_parser_parse_expr(hermes_parser_T* hermes_parser, hermes_scope_T* 
         node = ast_binop;
     }
 
-    if (node->type == AST_BINOP && hermes_parser->current_token->type == TOKEN_QUESTION)
-    {
+    if (hermes_parser->current_token->type == TOKEN_QUESTION)
         return hermes_parser_parse_ternary(hermes_parser, scope, node);
-    }
 
     return node;
 }
