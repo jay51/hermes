@@ -100,6 +100,16 @@ static void collect_and_sweep_garbage(runtime_T* runtime, dynamic_list_T* old_de
 
 static AST_T* _runtime_function_call(runtime_T* runtime, AST_T* fcall, AST_T* fdef)
 {
+
+    if(fcall->function_call_arguments->size != fdef->function_definition_arguments->size){
+        printf("Error: [Line %d] %s Expected %ld arguments but found %ld arguments\n",
+                fcall->line_n, fcall->function_call_name,
+                fdef->function_definition_arguments->size,
+                fcall->function_call_arguments->size);
+
+        exit(1);
+    }
+
     hermes_scope_T* function_definition_body_scope = (hermes_scope_T*) fdef->function_definition_body->scope;
 
     // Clear all existing arguments to prepare for the new definitions
