@@ -10,4 +10,4 @@ void getfunc()
     }
 }
 
-getfunc()("john");
+getfunc()("doe");

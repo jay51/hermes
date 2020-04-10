@@ -42,7 +42,7 @@ typedef struct AST_STRUCT
         AST_ASSERT
     } type;
     
-    char* function_call_name;
+    struct AST_STRUCT* function_call_expr;
 
     int line_n;
     int int_value;

@@ -103,7 +103,7 @@ static AST_T* _runtime_function_call(runtime_T* runtime, AST_T* fcall, AST_T* fd
 
     if(fcall->function_call_arguments->size != fdef->function_definition_arguments->size){
         printf("Error: [Line %d] %s Expected %ld arguments but found %ld arguments\n",
-                fcall->line_n, fcall->function_call_name,
+                fcall->line_n, "?",//fcall->function_call_name,
                 fdef->function_definition_arguments->size,
                 fcall->function_call_arguments->size);
 
@@ -345,8 +345,87 @@ AST_T* get_variable_definition_by_name(runtime_T* runtime, hermes_scope_T* scope
 
 AST_T* runtime_visit_variable(runtime_T* runtime, AST_T* node)
 {
+    hermes_scope_T* scope = get_scope(runtime, node);
     hermes_scope_T* local_scope = (hermes_scope_T*) node->scope;
     hermes_scope_T* global_scope = runtime->scope;
+
+    if (strcmp(node->variable_name, "dload") == 0)
+    {
+        AST_T* ast_arg_0 = (AST_T*) node->function_call_arguments->items[0];
+        AST_T* visited_0 = runtime_visit(runtime, ast_arg_0);
+
+        AST_T* fdef = INITIALIZED_NOOP;
+        
+        for (int i = 1; i < node->function_call_arguments->size; i++)
+        {
+            AST_T* ast_arg = (AST_T*) node->function_call_arguments->items[i];
+            AST_T* visited_ast = runtime_visit(runtime, ast_arg);
+
+            fdef = get_dl_function(visited_0->string_value, visited_ast->string_value);
+            fdef->scope = (struct hermes_scope_T*) scope;
+
+            runtime_visit(runtime, fdef);
+        }
+
+        return fdef;
+    }
+
+    if (strcmp(node->variable_name, "stdoutbuffer") == 0)
+    {
+        for (int i = 0; i < node->function_call_arguments->size; i++)
+        {
+            AST_T* ast_arg = (AST_T*) runtime_visit(runtime, node->function_call_arguments->items[i]);
+            char* str = ast_to_string(ast_arg);
+
+            if (str == (void*)0)
+            {
+                hermes_runtime_buffer_stdout(runtime, "(void*)0\n");
+            }
+            else
+            {
+                str = realloc(str, (strlen(str) + 2) * sizeof(char));
+                strcat(str, "\n");
+                hermes_runtime_buffer_stdout(runtime, str);
+                free(str);
+            }
+        }
+
+        return INITIALIZED_NOOP;
+    }
+
+    if (strcmp(node->variable_name, "free") == 0)
+    {
+        for (int i = 0; i < node->function_call_arguments->size; i++)
+        {
+            AST_T* arg = (AST_T*) node->function_call_arguments->items[i];
+
+            if (arg->type != AST_VARIABLE)
+                continue;
+
+            for (int i = 0; i < scope->variable_definitions->size; i++)
+            {
+                AST_T* vardef = scope->variable_definitions->items[i];
+
+                if (strcmp(vardef->variable_name, arg->variable_name) == 0)
+                {
+                    dynamic_list_remove(scope->variable_definitions, vardef, (void*)0);
+                    break;
+                }
+            }
+        }
+
+        return INITIALIZED_NOOP;
+    }
+
+    if (strcmp(node->variable_name, "visit") == 0)
+    {
+        AST_T* arg = (void*)0;
+
+        for (int i = 0; i < node->function_call_arguments->size; i++)
+            arg = runtime_visit(runtime, (AST_T*) node->function_call_arguments->items[i]);
+
+        return arg;
+    }
 
     if (node->object_children != (void*) 0)
     {
@@ -411,6 +490,16 @@ AST_T* runtime_visit_variable(runtime_T* runtime, AST_T* node)
                 return runtime_visit(runtime, variable_definition->variable_value);
             }
         }
+
+        for (int i = 0; i < local_scope->function_definitions->size; i++)
+        {
+            AST_T* function_definition = (AST_T*) local_scope->function_definitions->items[i];
+            
+            if (strcmp(function_definition->function_name, node->variable_name) == 0)
+            {
+                return function_definition;
+            }
+        }
     }
 
     if (!node->is_object_child) // nope
@@ -427,6 +516,16 @@ AST_T* runtime_visit_variable(runtime_T* runtime, AST_T* node)
                 if (variable_definition)
                 {
                     return runtime_visit(runtime, variable_definition->variable_value);
+                }
+            }
+
+            for (int i = 0; i < global_scope->function_definitions->size; i++)
+            {
+                AST_T* function_definition = (AST_T*) global_scope->function_definitions->items[i];
+                
+                if (strcmp(function_definition->function_name, node->variable_name) == 0)
+                {
+                    return function_definition;
                 }
             }
         }
@@ -673,11 +772,16 @@ AST_T* runtime_function_lookup(runtime_T* runtime, hermes_scope_T* scope, AST_T*
 {
     AST_T* function_definition = (void*)0;
 
+    AST_T* visited_expr = runtime_visit(runtime, node->function_call_expr);
+
+    if (visited_expr->type == AST_FUNCTION_DEFINITION)
+        function_definition = visited_expr;
+
     /**
      * First, check if there is a variable definition assigned with a 
      * function definition.
      */
-    for (int i = 0; i < scope->variable_definitions->size; i++)
+    /*for (int i = 0; i < scope->variable_definitions->size; i++)
     {
         AST_T* vardef = (AST_T*) scope->variable_definitions->items[i];
 
@@ -689,13 +793,13 @@ AST_T* runtime_function_lookup(runtime_T* runtime, hermes_scope_T* scope, AST_T*
                 break;
             }
         }
-    }
+    }*/
 
     /**
      * If we did not find a variable definition assigned with a function
      * defintion, then keep looking in function definitions instead.
      */
-    if (function_definition == (void*) 0)
+    /*if (function_definition == (void*) 0)
     {
         for (int i = 0; i < scope->function_definitions->size; i++)
         {
@@ -708,7 +812,7 @@ AST_T* runtime_function_lookup(runtime_T* runtime, hermes_scope_T* scope, AST_T*
 
             function_definition = (void*)0;
         }
-    }
+    }*/
 
     if (function_definition == (void*)0)
         return (void*)0;
@@ -755,6 +859,7 @@ AST_T* runtime_function_lookup(runtime_T* runtime, hermes_scope_T* scope, AST_T*
     else
     if (function_definition->composition_children != (void*)0)
     {
+        /*
         AST_T* final_result = init_ast(AST_NULL);
         char* type_value = function_definition->function_definition_type->type_value;
 
@@ -806,20 +911,20 @@ AST_T* runtime_function_lookup(runtime_T* runtime, hermes_scope_T* scope, AST_T*
                     fcall->function_call_arguments = call_arguments;
 
                 result = runtime_function_lookup(runtime, scope, fcall);
-            }
+            }*/
 
-            switch (result->type)
-            {
-                case AST_INTEGER: final_result->int_value = result->int_value; break;
-                case AST_FLOAT: final_result->float_value = result->float_value; break;
-                case AST_STRING: final_result->string_value = realloc(final_result->string_value, (strlen(result->string_value) + strlen(final_result->string_value) + 1) * sizeof(char)); strcat(final_result->string_value, result->string_value); break;
-                default: /* silence */; break;
-            }
+            //switch (result->type)
+            //{
+            //    case AST_INTEGER: final_result->int_value = result->int_value; break;
+            //    case AST_FLOAT: final_result->float_value = result->float_value; break;
+           //     case AST_STRING: final_result->string_value = realloc(final_result->string_value, (strlen(result->string_value) + strlen(final_result->string_value) + 1) * sizeof(char)); strcat(final_result->string_value, result->string_value); break;
+            //    default: /* silence */; break;
+            //}
 
-            ast_free(result);
-        }
+            //ast_free(result);
+        //}
 
-        return final_result;
+        //return final_result;
     }
 
     return (void*) 0;
@@ -827,88 +932,11 @@ AST_T* runtime_function_lookup(runtime_T* runtime, hermes_scope_T* scope, AST_T*
 
 AST_T* runtime_visit_function_call(runtime_T* runtime, AST_T* node)
 {
-    hermes_scope_T* scope = get_scope(runtime, node);
+    //hermes_scope_T* scope = get_scope(runtime, node);
 
     // TODO: put this in the hermes_builtins.c,
     // this cannot be done right now because the function pointers does not
-    // support the `scope` argument.
-    if (strcmp(node->function_call_name, "dload") == 0)
-    {
-        AST_T* ast_arg_0 = (AST_T*) node->function_call_arguments->items[0];
-        AST_T* visited_0 = runtime_visit(runtime, ast_arg_0);
-
-        AST_T* fdef = INITIALIZED_NOOP;
-        
-        for (int i = 1; i < node->function_call_arguments->size; i++)
-        {
-            AST_T* ast_arg = (AST_T*) node->function_call_arguments->items[i];
-            AST_T* visited_ast = runtime_visit(runtime, ast_arg);
-
-            fdef = get_dl_function(visited_0->string_value, visited_ast->string_value);
-            fdef->scope = (struct hermes_scope_T*) scope;
-
-            runtime_visit(runtime, fdef);
-        }
-
-        return fdef;
-    }
-
-    if (strcmp(node->function_call_name, "stdoutbuffer") == 0)
-    {
-        for (int i = 0; i < node->function_call_arguments->size; i++)
-        {
-            AST_T* ast_arg = (AST_T*) runtime_visit(runtime, node->function_call_arguments->items[i]);
-            char* str = ast_to_string(ast_arg);
-
-            if (str == (void*)0)
-            {
-                hermes_runtime_buffer_stdout(runtime, "(void*)0\n");
-            }
-            else
-            {
-                str = realloc(str, (strlen(str) + 2) * sizeof(char));
-                strcat(str, "\n");
-                hermes_runtime_buffer_stdout(runtime, str);
-                free(str);
-            }
-        }
-
-        return INITIALIZED_NOOP;
-    }
-
-    if (strcmp(node->function_call_name, "free") == 0)
-    {
-        for (int i = 0; i < node->function_call_arguments->size; i++)
-        {
-            AST_T* arg = (AST_T*) node->function_call_arguments->items[i];
-
-            if (arg->type != AST_VARIABLE)
-                continue;
-
-            for (int i = 0; i < scope->variable_definitions->size; i++)
-            {
-                AST_T* vardef = scope->variable_definitions->items[i];
-
-                if (strcmp(vardef->variable_name, arg->variable_name) == 0)
-                {
-                    dynamic_list_remove(scope->variable_definitions, vardef, (void*)0);
-                    break;
-                }
-            }
-        }
-
-        return INITIALIZED_NOOP;
-    }
-
-    if (strcmp(node->function_call_name, "visit") == 0)
-    {
-        AST_T* arg = (void*)0;
-
-        for (int i = 0; i < node->function_call_arguments->size; i++)
-            arg = runtime_visit(runtime, (AST_T*) node->function_call_arguments->items[i]);
-
-        return arg;
-    }  
+    // support the `scope` argument.  
 
     if (node->scope != (void*) 0)
     {
@@ -931,7 +959,7 @@ AST_T* runtime_visit_function_call(runtime_T* runtime, AST_T* node)
     if (global_scope_func_def)
         return global_scope_func_def;
 
-    printf("Error: [Line %d] Undefined method %s\n", node->line_n, node->function_call_name); exit(1);
+    printf("Error: [Line %d] Undefined method %s\n", node->line_n, "?"/*node->function_call_name*/); exit(1);
 }
 
 AST_T* runtime_visit_null(runtime_T* runtime, AST_T* node)
@@ -1094,7 +1122,7 @@ AST_T* runtime_visit_attribute_access(runtime_T* runtime, AST_T* node)
     }
 
     // call a function attached to some sort of value.
-    if (node->binop_right->type == AST_FUNCTION_CALL)
+    /*if (node->binop_right->type == AST_FUNCTION_CALL)
     {
         if (left->function_definitions != (void*)0)
         {
@@ -1134,7 +1162,7 @@ AST_T* runtime_visit_attribute_access(runtime_T* runtime, AST_T* node)
                         return _runtime_function_call(runtime, node->binop_right, obj_child);
             }
         }
-    }
+    }*/
 
     node->scope = (struct hermes_scope_T*) get_scope(runtime, left);
     
@@ -1176,7 +1204,7 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
         switch (right->type)
         {
             case AST_VARIABLE: access_name = right->variable_name; break;
-            case AST_FUNCTION_CALL: access_name = right->function_call_name; break;
+            //case AST_FUNCTION_CALL: access_name = right->function_call_name; break;
             default: /* silence */; break;
         }
 

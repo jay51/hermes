@@ -151,12 +151,10 @@ AST_T* hermes_parser_parse_statement(hermes_parser_T* hermes_parser, hermes_scop
 
             hermes_parser_eat(hermes_parser, TOKEN_ID);
 
-            AST_T* a = (void*) 0;
+            AST_T* a = hermes_parser_parse_variable(hermes_parser, scope);
 
-            if (hermes_parser->current_token->type == TOKEN_LPAREN)
-                a = hermes_parser_parse_function_call(hermes_parser, scope);
-            else
-                a = hermes_parser_parse_variable(hermes_parser, scope);
+            while (hermes_parser->current_token->type == TOKEN_LPAREN)
+                a = hermes_parser_parse_function_call(hermes_parser, scope, a);
 
             while (hermes_parser->current_token->type == TOKEN_DOT)
             {
@@ -483,7 +481,7 @@ AST_T* hermes_parser_parse_factor(hermes_parser_T* hermes_parser, hermes_scope_T
 
         switch (hermes_parser->current_token->type)
         {
-            case TOKEN_LPAREN: a = hermes_parser_parse_function_call(hermes_parser, scope); break;
+            //case TOKEN_LPAREN: a = hermes_parser_parse_function_call(hermes_parser, scope); break;
             default: a = hermes_parser_parse_variable(hermes_parser, scope); break;
         }
 
@@ -543,6 +541,9 @@ AST_T* hermes_parser_parse_term(hermes_parser_T* hermes_parser, hermes_scope_T* 
 
     AST_T* node = hermes_parser_parse_factor(hermes_parser, scope);
     AST_T* ast_binop = (void*) 0;
+
+    if (hermes_parser->current_token->type == TOKEN_LPAREN)
+        node = hermes_parser_parse_function_call(hermes_parser, scope, node);
 
     while (
         hermes_parser->current_token->type == TOKEN_DIV ||        
@@ -775,11 +776,10 @@ AST_T* hermes_parser_parse_while(hermes_parser_T* hermes_parser, hermes_scope_T*
 
 // functions
 
-AST_T* hermes_parser_parse_function_call(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
+AST_T* hermes_parser_parse_function_call(hermes_parser_T* hermes_parser, hermes_scope_T* scope, AST_T* expr)
 {
     AST_T* ast_function_call = init_ast_with_line(AST_FUNCTION_CALL, hermes_parser->hermes_lexer->line_n);
-    ast_function_call->function_call_name = calloc(strlen(hermes_parser->prev_token->value) + 1, sizeof(char));
-    strcpy(ast_function_call->function_call_name, hermes_parser->prev_token->value);
+    ast_function_call->function_call_expr = expr;
     hermes_parser_eat(hermes_parser, TOKEN_LPAREN);
     ast_function_call->scope = (struct hermes_scope_T*) scope;
 
