@@ -1,0 +1,13 @@
+/**
+* This does not work, but should work
+*/
+
+void getfunc()
+{
+    return void @(string name)
+    {
+        print("hello " + name);
+    }
+}
+
+getfunc()("john");
