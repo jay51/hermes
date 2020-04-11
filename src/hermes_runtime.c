@@ -1413,8 +1413,8 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
             {
                 return_value = init_ast(AST_BOOLEAN);
                 return_value->boolean_value =
-                    data_type_has_modifier(left->type_value, DATA_TYPE_MODIFIER_LONG) ? left->long_int_value : left->int_value &&
-                    data_type_has_modifier(right->type_value, DATA_TYPE_MODIFIER_LONG) ? right->long_int_value : left->int_value;
+                    (data_type_has_modifier(left->type_value, DATA_TYPE_MODIFIER_LONG) ? left->long_int_value : left->int_value) &&
+                    (data_type_has_modifier(right->type_value, DATA_TYPE_MODIFIER_LONG) ? right->long_int_value : left->int_value);
 
                 return return_value;
             }
@@ -1440,6 +1440,13 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
             {
                 return_value = init_ast(AST_BOOLEAN);
                 return_value->boolean_value = left->float_value && right->int_value;
+
+                return return_value;
+            }
+            if (left->type == AST_BOOLEAN && right->type == AST_BOOLEAN)
+            {
+                return_value = init_ast(AST_BOOLEAN);
+                return_value->boolean_value = (left->boolean_value && right->boolean_value);
 
                 return return_value;
             }
