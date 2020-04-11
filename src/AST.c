@@ -13,6 +13,7 @@ AST_T* init_ast(int type)
     AST->line_n = -1;
     AST->function_call_expr = (void*) 0;
     AST->int_value = 0;
+    AST->long_int_value = 0;
     AST->boolean_value = 0;
     AST->is_object_child = 0;
     AST->float_value = 0;
@@ -388,7 +389,9 @@ AST_T* ast_copy_integer(AST_T* ast)
 {
     AST_T* a = init_ast(ast->type);
     a->scope = ast->scope;
+
     a->int_value = ast->int_value;
+    a->long_int_value = ast->long_int_value;
 
     return a;
 }
@@ -412,8 +415,7 @@ AST_T* ast_copy_type(AST_T* ast)
 {
     AST_T* type = init_ast(ast->type);
     type->scope = ast->scope;
-    type->type_value = calloc(strlen(ast->type_value) + 1, sizeof(char));
-    strcpy(type->type_value, ast->type_value);
+    type->type_value = data_type_copy(ast->type_value);
 
     return type;
 }
@@ -652,7 +654,7 @@ char* ast_integer_to_string(AST_T* ast)
 {
     const char* template = "%d";
     char* str = calloc(strlen(template) + 1, sizeof(char));
-    sprintf(str, template, (int) ast->int_value);
+    sprintf(str, template, ast->int_value ? ast->int_value : ast->long_int_value);
 
     return str;
 }

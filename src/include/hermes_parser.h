@@ -11,6 +11,7 @@ typedef struct HERMES_PARSER_STRUCT
     hermes_lexer_T* hermes_lexer;
     token_T* prev_token;
     token_T* current_token;
+    data_type_T* data_type;
 } hermes_parser_T;
 
 hermes_parser_T* init_hermes_parser(hermes_lexer_T* hermes_lexer);
