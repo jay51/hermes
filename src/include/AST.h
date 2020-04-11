@@ -4,6 +4,9 @@
 #include "dynamic_list.h"
 #include "token.h"
 
+
+struct RUNTIME_STRUCT;
+
 typedef struct AST_STRUCT
 {
     enum {
@@ -42,7 +45,7 @@ typedef struct AST_STRUCT
         AST_ASSERT
     } type;
     
-    char* function_call_name;
+    struct AST_STRUCT* function_call_expr;
 
     int line_n;
     int int_value;
@@ -104,7 +107,7 @@ typedef struct AST_STRUCT
     
     struct hermes_scope_T* scope;
 
-    struct AST_STRUCT* (*fptr)(struct AST_STRUCT* self, dynamic_list_T* args);
+    struct AST_STRUCT* (*fptr)(struct RUNTIME_STRUCT* runtime, struct AST_STRUCT* self, dynamic_list_T* args);
 } AST_T;
 
 AST_T* init_ast(int type);

@@ -19,7 +19,7 @@ static void _multiple_variable_definitions_error(int line_n, char* variable_name
     exit(1);
 }
 
-static AST_T* list_add_fptr(AST_T* self, dynamic_list_T* args)
+static AST_T* list_add_fptr(runtime_T* runtime, AST_T* self, dynamic_list_T* args)
 {
     for (int i = 0; i < args->size; i++)
         dynamic_list_append(self->list_children, args->items[i]);
@@ -27,7 +27,7 @@ static AST_T* list_add_fptr(AST_T* self, dynamic_list_T* args)
     return self;
 }
 
-static AST_T* list_remove_fptr(AST_T* self, dynamic_list_T* args)
+static AST_T* list_remove_fptr(runtime_T* runtime, AST_T* self, dynamic_list_T* args)
 {
     runtime_expect_args(args, 1, (int[]){ AST_INTEGER });
 
@@ -103,7 +103,7 @@ static AST_T* _runtime_function_call(runtime_T* runtime, AST_T* fcall, AST_T* fd
 
     if(fcall->function_call_arguments->size != fdef->function_definition_arguments->size){
         printf("Error: [Line %d] %s Expected %ld arguments but found %ld arguments\n",
-                fcall->line_n, fcall->function_call_name,
+                fcall->line_n, fdef->function_name,
                 fdef->function_definition_arguments->size,
                 fcall->function_call_arguments->size);
 
@@ -196,6 +196,11 @@ runtime_T* init_runtime()
     PRINT_FUNCTION_DEFINITION->fptr = hermes_builtin_function_print;
     dynamic_list_append(runtime->scope->function_definitions, PRINT_FUNCTION_DEFINITION);
 
+    AST_T* STOUDBUFFER_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);
+    STOUDBUFFER_FUNCTION_DEFINITION->function_name = create_str("stdoutbuffer");
+    STOUDBUFFER_FUNCTION_DEFINITION->fptr = hermes_builtin_function_stdoutbuffer;
+    dynamic_list_append(runtime->scope->function_definitions, STOUDBUFFER_FUNCTION_DEFINITION);
+
     AST_T* PPRINT_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);
     PPRINT_FUNCTION_DEFINITION->function_name = create_str("aprint");
     PPRINT_FUNCTION_DEFINITION->fptr = hermes_builtin_function_aprint;
@@ -245,6 +250,21 @@ runtime_T* init_runtime()
     TIME_FUNCTION_DEFINITION->function_name = create_str("time");
     TIME_FUNCTION_DEFINITION->fptr = hermes_builtin_function_time;
     dynamic_list_append(runtime->scope->function_definitions, TIME_FUNCTION_DEFINITION);
+
+    AST_T* DLOAD_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);
+    DLOAD_FUNCTION_DEFINITION->function_name = create_str("dload");
+    DLOAD_FUNCTION_DEFINITION->fptr = hermes_builtin_function_dload;
+    dynamic_list_append(runtime->scope->function_definitions, DLOAD_FUNCTION_DEFINITION);
+
+    AST_T* FREE_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);
+    FREE_FUNCTION_DEFINITION->function_name = create_str("free");
+    FREE_FUNCTION_DEFINITION->fptr = hermes_builtin_function_free;
+    dynamic_list_append(runtime->scope->function_definitions, FREE_FUNCTION_DEFINITION);
+
+    AST_T* VISIT_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);
+    VISIT_FUNCTION_DEFINITION->function_name = create_str("visit");
+    VISIT_FUNCTION_DEFINITION->fptr = hermes_builtin_function_visit;
+    dynamic_list_append(runtime->scope->function_definitions, VISIT_FUNCTION_DEFINITION);
 
     // LIST FUNCTIONS
 
@@ -346,7 +366,7 @@ AST_T* get_variable_definition_by_name(runtime_T* runtime, hermes_scope_T* scope
 AST_T* runtime_visit_variable(runtime_T* runtime, AST_T* node)
 {
     hermes_scope_T* local_scope = (hermes_scope_T*) node->scope;
-    hermes_scope_T* global_scope = runtime->scope;
+    hermes_scope_T* global_scope = runtime->scope; 
 
     if (node->object_children != (void*) 0)
     {
@@ -411,6 +431,16 @@ AST_T* runtime_visit_variable(runtime_T* runtime, AST_T* node)
                 return runtime_visit(runtime, variable_definition->variable_value);
             }
         }
+
+        for (int i = 0; i < local_scope->function_definitions->size; i++)
+        {
+            AST_T* function_definition = (AST_T*) local_scope->function_definitions->items[i];
+            
+            if (strcmp(function_definition->function_name, node->variable_name) == 0)
+            {
+                return function_definition;
+            }
+        }
     }
 
     if (!node->is_object_child) // nope
@@ -427,6 +457,16 @@ AST_T* runtime_visit_variable(runtime_T* runtime, AST_T* node)
                 if (variable_definition)
                 {
                     return runtime_visit(runtime, variable_definition->variable_value);
+                }
+            }
+
+            for (int i = 0; i < global_scope->function_definitions->size; i++)
+            {
+                AST_T* function_definition = (AST_T*) global_scope->function_definitions->items[i];
+                
+                if (strcmp(function_definition->function_name, node->variable_name) == 0)
+                {
+                    return function_definition;
                 }
             }
         }
@@ -673,42 +713,10 @@ AST_T* runtime_function_lookup(runtime_T* runtime, hermes_scope_T* scope, AST_T*
 {
     AST_T* function_definition = (void*)0;
 
-    /**
-     * First, check if there is a variable definition assigned with a 
-     * function definition.
-     */
-    for (int i = 0; i < scope->variable_definitions->size; i++)
-    {
-        AST_T* vardef = (AST_T*) scope->variable_definitions->items[i];
+    AST_T* visited_expr = runtime_visit(runtime, node->function_call_expr);
 
-        if (strcmp(node->function_call_name, vardef->variable_name) == 0)
-        {
-            if (vardef->variable_value->type == AST_FUNCTION_DEFINITION)
-            {
-                function_definition = vardef->variable_value;
-                break;
-            }
-        }
-    }
-
-    /**
-     * If we did not find a variable definition assigned with a function
-     * defintion, then keep looking in function definitions instead.
-     */
-    if (function_definition == (void*) 0)
-    {
-        for (int i = 0; i < scope->function_definitions->size; i++)
-        {
-            function_definition = (AST_T*) scope->function_definitions->items[i];
-            
-            if (strcmp(function_definition->function_name, node->function_call_name) == 0)
-            {
-                break; 
-            }
-
-            function_definition = (void*)0;
-        }
-    }
+    if (visited_expr->type == AST_FUNCTION_DEFINITION)
+        function_definition = visited_expr;
 
     if (function_definition == (void*)0)
         return (void*)0;
@@ -740,7 +748,7 @@ AST_T* runtime_function_lookup(runtime_T* runtime, hermes_scope_T* scope, AST_T*
             dynamic_list_append(visited_fptr_args, visited);
         }
 
-        AST_T* ret = runtime_visit(runtime, (AST_T*) function_definition->fptr((AST_T*) function_definition, visited_fptr_args));
+        AST_T* ret = runtime_visit(runtime, (AST_T*) function_definition->fptr(runtime, (AST_T*) function_definition, visited_fptr_args));
 
         free(visited_fptr_args->items);
         free(visited_fptr_args);
@@ -755,6 +763,7 @@ AST_T* runtime_function_lookup(runtime_T* runtime, hermes_scope_T* scope, AST_T*
     else
     if (function_definition->composition_children != (void*)0)
     {
+        
         AST_T* final_result = init_ast(AST_NULL);
         char* type_value = function_definition->function_definition_type->type_value;
 
@@ -798,7 +807,7 @@ AST_T* runtime_function_lookup(runtime_T* runtime, hermes_scope_T* scope, AST_T*
             else
             {
                 AST_T* fcall = init_ast(AST_FUNCTION_CALL);
-                fcall->function_call_name = comp_child->variable_name;
+                fcall->function_call_expr = comp_child;
 
                 if (i == 0)
                     fcall->function_call_arguments = node->function_call_arguments;
@@ -827,88 +836,11 @@ AST_T* runtime_function_lookup(runtime_T* runtime, hermes_scope_T* scope, AST_T*
 
 AST_T* runtime_visit_function_call(runtime_T* runtime, AST_T* node)
 {
-    hermes_scope_T* scope = get_scope(runtime, node);
+    //hermes_scope_T* scope = get_scope(runtime, node);
 
     // TODO: put this in the hermes_builtins.c,
     // this cannot be done right now because the function pointers does not
-    // support the `scope` argument.
-    if (strcmp(node->function_call_name, "dload") == 0)
-    {
-        AST_T* ast_arg_0 = (AST_T*) node->function_call_arguments->items[0];
-        AST_T* visited_0 = runtime_visit(runtime, ast_arg_0);
-
-        AST_T* fdef = INITIALIZED_NOOP;
-        
-        for (int i = 1; i < node->function_call_arguments->size; i++)
-        {
-            AST_T* ast_arg = (AST_T*) node->function_call_arguments->items[i];
-            AST_T* visited_ast = runtime_visit(runtime, ast_arg);
-
-            fdef = get_dl_function(visited_0->string_value, visited_ast->string_value);
-            fdef->scope = (struct hermes_scope_T*) scope;
-
-            runtime_visit(runtime, fdef);
-        }
-
-        return fdef;
-    }
-
-    if (strcmp(node->function_call_name, "stdoutbuffer") == 0)
-    {
-        for (int i = 0; i < node->function_call_arguments->size; i++)
-        {
-            AST_T* ast_arg = (AST_T*) runtime_visit(runtime, node->function_call_arguments->items[i]);
-            char* str = ast_to_string(ast_arg);
-
-            if (str == (void*)0)
-            {
-                hermes_runtime_buffer_stdout(runtime, "(void*)0\n");
-            }
-            else
-            {
-                str = realloc(str, (strlen(str) + 2) * sizeof(char));
-                strcat(str, "\n");
-                hermes_runtime_buffer_stdout(runtime, str);
-                free(str);
-            }
-        }
-
-        return INITIALIZED_NOOP;
-    }
-
-    if (strcmp(node->function_call_name, "free") == 0)
-    {
-        for (int i = 0; i < node->function_call_arguments->size; i++)
-        {
-            AST_T* arg = (AST_T*) node->function_call_arguments->items[i];
-
-            if (arg->type != AST_VARIABLE)
-                continue;
-
-            for (int i = 0; i < scope->variable_definitions->size; i++)
-            {
-                AST_T* vardef = scope->variable_definitions->items[i];
-
-                if (strcmp(vardef->variable_name, arg->variable_name) == 0)
-                {
-                    dynamic_list_remove(scope->variable_definitions, vardef, (void*)0);
-                    break;
-                }
-            }
-        }
-
-        return INITIALIZED_NOOP;
-    }
-
-    if (strcmp(node->function_call_name, "visit") == 0)
-    {
-        AST_T* arg = (void*)0;
-
-        for (int i = 0; i < node->function_call_arguments->size; i++)
-            arg = runtime_visit(runtime, (AST_T*) node->function_call_arguments->items[i]);
-
-        return arg;
-    }  
+    // support the `scope` argument.  
 
     if (node->scope != (void*) 0)
     {
@@ -931,7 +863,7 @@ AST_T* runtime_visit_function_call(runtime_T* runtime, AST_T* node)
     if (global_scope_func_def)
         return global_scope_func_def;
 
-    printf("Error: [Line %d] Undefined method %s\n", node->line_n, node->function_call_name); exit(1);
+    printf("Error: [Line %d] Undefined method %s\n", node->line_n, "?"/*node->function_call_name*/); exit(1);
 }
 
 AST_T* runtime_visit_null(runtime_T* runtime, AST_T* node)
@@ -1093,45 +1025,54 @@ AST_T* runtime_visit_attribute_access(runtime_T* runtime, AST_T* node)
         }
     }
 
-    // call a function attached to some sort of value.
+    /**
+     * Call a function attached to some sort of value.
+     *
+     * TODO: dont do this. It might be possible to fetch the function
+     * definition in antoher way. Maybe in visit_variable?
+     */
     if (node->binop_right->type == AST_FUNCTION_CALL)
     {
-        if (left->function_definitions != (void*)0)
+        if (node->binop_right->function_call_expr->type == AST_VARIABLE)
         {
-            for (int i = 0; i < left->function_definitions->size; i++)
+            char* function_call_name = node->binop_right->function_call_expr->variable_name;
+
+            if (left->function_definitions != (void*)0)
             {
-                AST_T* _fdef = left->function_definitions->items[i];
-
-                if (strcmp(_fdef->function_name, node->binop_right->function_call_name) == 0)
+                for (int i = 0; i < left->function_definitions->size; i++)
                 {
-                    if (_fdef->fptr)
-                    {
-                        dynamic_list_T* visited_fptr_args = init_dynamic_list(sizeof(struct AST_STRUCT*));
+                    AST_T* _fdef = left->function_definitions->items[i];
 
-                        for (int x = 0; x < node->binop_right->function_call_arguments->size; x++)
+                    if (strcmp(_fdef->function_name, function_call_name) == 0)
+                    {
+                        if (_fdef->fptr)
                         {
-                            AST_T* ast_arg = (AST_T*) node->binop_right->function_call_arguments->items[x];
-                            AST_T* visited = runtime_visit(runtime, ast_arg);
-                            dynamic_list_append(visited_fptr_args, visited);
+                            dynamic_list_T* visited_fptr_args = init_dynamic_list(sizeof(struct AST_STRUCT*));
+
+                            for (int x = 0; x < node->binop_right->function_call_arguments->size; x++)
+                            {
+                                AST_T* ast_arg = (AST_T*) node->binop_right->function_call_arguments->items[x];
+                                AST_T* visited = runtime_visit(runtime, ast_arg);
+                                dynamic_list_append(visited_fptr_args, visited);
+                            }
+
+                            return runtime_visit(runtime, (AST_T*) _fdef->fptr(runtime, (AST_T*) left, visited_fptr_args));
                         }
 
-                        AST_T* ret = runtime_visit(runtime, (AST_T*) _fdef->fptr((AST_T*) left, visited_fptr_args));
-                        return ret;
                     }
-
                 }
             }
-        }
         
-        if (left->object_children != (void*)0)
-        {
-            for (int i = 0; i < left->object_children->size; i++)
+            if (left->object_children != (void*)0)
             {
-                AST_T* obj_child = (AST_T*) left->object_children->items[i];
-                
-                if (obj_child->type == AST_FUNCTION_DEFINITION)
-                    if (strcmp(obj_child->function_name, node->binop_right->function_call_name) == 0)
-                        return _runtime_function_call(runtime, node->binop_right, obj_child);
+                for (int i = 0; i < left->object_children->size; i++)
+                {
+                    AST_T* obj_child = (AST_T*) left->object_children->items[i];
+                    
+                    if (obj_child->type == AST_FUNCTION_DEFINITION)
+                        if (strcmp(obj_child->function_name, function_call_name) == 0)
+                            return _runtime_function_call(runtime, node->binop_right, obj_child);
+                }
             }
         }
     }
@@ -1176,7 +1117,7 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
         switch (right->type)
         {
             case AST_VARIABLE: access_name = right->variable_name; break;
-            case AST_FUNCTION_CALL: access_name = right->function_call_name; break;
+            //case AST_FUNCTION_CALL: access_name = right->function_call_name; break;
             default: /* silence */; break;
         }
 

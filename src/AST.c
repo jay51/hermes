@@ -11,7 +11,7 @@ AST_T* init_ast(int type)
     AST_T* AST = calloc(1, sizeof(struct AST_STRUCT));
     AST->type = type;
     AST->line_n = -1;
-    AST->function_call_name = (void*) 0;
+    AST->function_call_expr = (void*) 0;
     AST->int_value = 0;
     AST->boolean_value = 0;
     AST->is_object_child = 0;
@@ -97,8 +97,8 @@ void ast_free(AST_T* ast)
     if (ast->type == AST_FUNCTION_DEFINITION || ast->type == AST_VARIABLE_DEFINITION)
         return;
 
-    if (ast->function_call_name)
-        free(ast->function_call_name);
+    if (ast->function_call_expr)
+        ast_free(ast->function_call_expr);
 
     if (ast->string_value)
         free(ast->string_value); 
@@ -462,8 +462,7 @@ AST_T* ast_copy_variable_modifier(AST_T* ast)
 AST_T* ast_copy_function_call(AST_T* ast)
 {
     AST_T* a = init_ast(ast->type);
-    a->function_call_name = calloc(strlen(ast->function_call_name) + 1, sizeof(char));
-    strcpy(a->function_call_name, ast->function_call_name);
+    a->function_call_expr = ast_copy(ast->function_call_expr);
 
     for (int i = 0; i < ast->function_call_arguments->size; i++)
     {
@@ -612,9 +611,11 @@ char* ast_function_definition_to_string(AST_T* ast)
 
 char* ast_function_call_to_string(AST_T* ast)
 {
+    char* expr_str = ast_to_string(ast->function_call_expr);
+
     const char* template = "%s (%d)";
-    char* str = calloc(strlen(template) + strlen(ast->function_call_name) + 128, sizeof(char));
-    sprintf(str, template, ast->function_call_name, (int)ast->function_call_arguments->size);
+    char* str = calloc(strlen(template) + strlen(expr_str) + 128, sizeof(char));
+    sprintf(str, template, expr_str, (int)ast->function_call_arguments->size);
 
     return str;
 }

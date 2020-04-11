@@ -1,7 +1,3 @@
-/**
-* This does not work, but should work
-*/
-
 void getfunc()
 {
     return void @(string name)
@@ -10,4 +6,4 @@ void getfunc()
     }
 }
 
-getfunc()("john");
+getfunc()("doe");
