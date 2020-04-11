@@ -103,7 +103,7 @@ static AST_T* _runtime_function_call(runtime_T* runtime, AST_T* fcall, AST_T* fd
 
     if(fcall->function_call_arguments->size != fdef->function_definition_arguments->size){
         printf("Error: [Line %d] %s Expected %ld arguments but found %ld arguments\n",
-                fcall->line_n, "?",//fcall->function_call_name,
+                fcall->line_n, fdef->function_name,
                 fdef->function_definition_arguments->size,
                 fcall->function_call_arguments->size);
 

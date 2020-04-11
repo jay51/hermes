@@ -611,9 +611,11 @@ char* ast_function_definition_to_string(AST_T* ast)
 
 char* ast_function_call_to_string(AST_T* ast)
 {
+    char* expr_str = ast_to_string(ast->function_call_expr);
+
     const char* template = "%s (%d)";
-    char* str = calloc(strlen(template) + /*strlen(ast->function_call_name)*/ + 128, sizeof(char));
-    sprintf(str, template, "?", (int)ast->function_call_arguments->size);
+    char* str = calloc(strlen(template) + strlen(expr_str) + 128, sizeof(char));
+    sprintf(str, template, expr_str, (int)ast->function_call_arguments->size);
 
     return str;
 }
