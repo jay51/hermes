@@ -14,9 +14,10 @@ dload("librequests.so", "httpget");
 
 #include <hermes/AST.h>
 #include <hermes/dynamic_list.h>
+#include <hermes/hermes_runtime.h>
 
 
-AST_T* getpi(AST_T* self, dynamic_list_T* args)
+AST_T* getpi(runtime_T* runtime, AST_T* self, dynamic_list_T* args)
 {
     AST_T* float_ast = init_ast(AST_FLOAT);
     float_ast->float_value = 3.14;
