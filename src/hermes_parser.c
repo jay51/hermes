@@ -2,17 +2,6 @@
 #include <string.h>
 
 
-const char* DATA_TYPE_VOID = "void";
-const char* DATA_TYPE_STRING = "string";
-const char* DATA_TYPE_CHAR = "char";
-const char* DATA_TYPE_INT = "int";
-const char* DATA_TYPE_FLOAT = "float";
-const char* DATA_TYPE_BOOLEAN = "bool";
-const char* DATA_TYPE_OBJECT = "object";
-const char* DATA_TYPE_ENUM = "enum";
-const char* DATA_TYPE_LIST = "list";
-const char* DATA_TYPE_SOURCE = "source";
-
 const char* STATEMENT_WHILE = "while";
 const char* STATEMENT_IF = "if";
 const char* STATEMENT_ELSE = "else";
@@ -33,6 +22,7 @@ hermes_parser_T* init_hermes_parser(hermes_lexer_T* hermes_lexer)
     hermes_parser->hermes_lexer = hermes_lexer;
     hermes_parser->current_token = hermes_lexer_get_next_token(hermes_parser->hermes_lexer);
     hermes_parser->prev_token = (void*)0;
+    hermes_parser->data_type = (void*)0;
 
     return hermes_parser;
 }
@@ -73,17 +63,22 @@ static AST_T* as_object_child(AST_T* ast, AST_T* object)
 static unsigned int is_data_type(char* token_value)
 {
     return (
-        strcmp(token_value, DATA_TYPE_VOID) == 0 ||
-        strcmp(token_value, DATA_TYPE_INT) == 0 ||
-        strcmp(token_value, DATA_TYPE_STRING) == 0 ||
-        strcmp(token_value, DATA_TYPE_CHAR) == 0 ||
-        strcmp(token_value, DATA_TYPE_FLOAT) == 0 ||
-        strcmp(token_value, DATA_TYPE_BOOLEAN) == 0 ||
-        strcmp(token_value, DATA_TYPE_OBJECT) == 0 ||
-        strcmp(token_value, DATA_TYPE_ENUM) == 0 ||
-        strcmp(token_value, DATA_TYPE_LIST) == 0 ||
-        strcmp(token_value, DATA_TYPE_SOURCE) == 0
+        strcmp(token_value, "void") == 0 ||
+        strcmp(token_value, "int") == 0 ||
+        strcmp(token_value, "string") == 0 ||
+        strcmp(token_value, "char") == 0 ||
+        strcmp(token_value, "float") == 0 ||
+        strcmp(token_value, "bool") == 0 ||
+        strcmp(token_value, "object") == 0 ||
+        strcmp(token_value, "enum") == 0 ||
+        strcmp(token_value, "list") == 0 ||
+        strcmp(token_value, "source") == 0
     );
+}
+
+static unsigned int is_data_type_modifier(char* token_value)
+{
+    return strcmp(token_value, "long") == 0;
 }
 
 AST_T* hermes_parser_parse(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
@@ -146,7 +141,7 @@ AST_T* hermes_parser_parse_statement(hermes_parser_T* hermes_parser, hermes_scop
             if (strcmp(token_value, STATEMENT_ASSERT) == 0)
                 return hermes_parser_parse_assert(hermes_parser, scope);
 
-            if (is_data_type(token_value))
+            if (is_data_type(token_value) || is_data_type_modifier(token_value))
                 return hermes_parser_parse_function_definition(hermes_parser, scope);
 
             hermes_parser_eat(hermes_parser, TOKEN_ID);
@@ -214,8 +209,63 @@ AST_T* hermes_parser_parse_type(hermes_parser_T* hermes_parser, hermes_scope_T* 
 {
     AST_T* ast_type = init_ast_with_line(AST_TYPE, hermes_parser->hermes_lexer->line_n);
     ast_type->scope = (struct hermes_scope_T*) scope;
-    ast_type->type_value = calloc(strlen(hermes_parser->current_token->value) + 1, sizeof(char));
-    strcpy(ast_type->type_value, hermes_parser->current_token->value);
+
+    data_type_T* type = init_data_type();
+
+    int modifier_index = 0;
+    while (is_data_type_modifier(hermes_parser->current_token->value))
+    {
+        if (modifier_index > 3)
+        {
+            printf("[Line %d] Too many modifiers\n", hermes_parser->hermes_lexer->line_n);
+            exit(1);
+        }
+
+        int modifier = 0;
+
+        if (strcmp(hermes_parser->current_token->value, "long") == 0)
+            modifier = DATA_TYPE_MODIFIER_LONG;
+
+        type->modifiers[modifier_index] = modifier;
+
+        hermes_parser_eat(hermes_parser, TOKEN_ID); // eat modifier token
+
+        modifier_index += 1;
+    }
+
+    char* token_value = hermes_parser->current_token->value;
+
+    if (strcmp(token_value, "void") == 0)
+        type->type = DATA_TYPE_VOID;
+    else
+    if (strcmp(token_value, "string") == 0)
+        type-> type = DATA_TYPE_STRING;
+    else
+    if (strcmp(token_value, "char") == 0)
+        type-> type = DATA_TYPE_CHAR;
+    else
+    if (strcmp(token_value, "int") == 0)
+        type-> type = DATA_TYPE_INT;
+    else
+    if (strcmp(token_value, "float") == 0)
+        type-> type = DATA_TYPE_FLOAT;
+    else
+    if (strcmp(token_value, "boolean") == 0)
+        type-> type = DATA_TYPE_BOOLEAN;
+    else
+    if (strcmp(token_value, "object") == 0)
+        type-> type = DATA_TYPE_OBJECT;
+    else
+    if (strcmp(token_value, "enum") == 0)
+        type-> type = DATA_TYPE_ENUM;
+    else
+    if (strcmp(token_value, "list") == 0)
+        type-> type = DATA_TYPE_LIST;
+    else
+    if (strcmp(token_value, "source") == 0)
+        type-> type = DATA_TYPE_SOURCE;
+    
+    ast_type->type_value = type;
 
     hermes_parser_eat(hermes_parser, TOKEN_ID);
 
@@ -267,7 +317,21 @@ AST_T* hermes_parser_parse_integer(hermes_parser_T* hermes_parser, hermes_scope_
 {
     AST_T* ast_integer = init_ast_with_line(AST_INTEGER, hermes_parser->hermes_lexer->line_n);
     ast_integer->scope = (struct hermes_scope_T*) scope;
-    ast_integer->int_value = atoi(hermes_parser->current_token->value);
+
+    unsigned int value_is_set = 0;
+    
+    if (hermes_parser->data_type != (void*)0)
+    {
+        if (data_type_has_modifier(hermes_parser->data_type, DATA_TYPE_MODIFIER_LONG))
+        {
+            ast_integer->long_int_value = atoi(hermes_parser->current_token->value);
+            value_is_set = 1;
+            hermes_parser->data_type = (void*)0;
+        }
+    }
+
+    if (!value_is_set)
+        ast_integer->int_value = atoi(hermes_parser->current_token->value);
 
     hermes_parser_eat(hermes_parser, TOKEN_INTEGER_VALUE);
 
@@ -539,7 +603,7 @@ AST_T* hermes_parser_parse_term(hermes_parser_T* hermes_parser, hermes_scope_T* 
 {
     char* token_value = hermes_parser->current_token->value;
 
-    if (is_data_type(token_value)) // this is to be able to have variable definitions inside of function definition parantheses.
+    if (is_data_type(token_value) || is_data_type_modifier(token_value)) // this is to be able to have variable definitions inside of function definition parantheses.
         return hermes_parser_parse_function_definition(hermes_parser, scope);
 
     AST_T* node = hermes_parser_parse_factor(hermes_parser, scope);
@@ -730,7 +794,7 @@ AST_T* hermes_parser_parse_iterate(hermes_parser_T* hermes_parser, hermes_scope_
 
     AST_T* ast_fname = (void*)0;
 
-    if (is_data_type(hermes_parser->current_token->value))
+    if (is_data_type(hermes_parser->current_token->value) || is_data_type_modifier(hermes_parser->current_token->value))
     {
         /**
          * Here we make the assumption that a private function is being
@@ -828,10 +892,12 @@ AST_T* hermes_parser_parse_function_definition(hermes_parser_T* hermes_parser, h
 {
     AST_T* ast_type = hermes_parser_parse_type(hermes_parser, scope);
 
+    hermes_parser->data_type = ast_type->type_value;
+
     char* function_name = (void*)0;
     unsigned int is_enum = 0;
 
-    if (strcmp(ast_type->type_value, DATA_TYPE_ENUM) != 0)
+    if (ast_type->type_value->type != DATA_TYPE_ENUM)
     {
         function_name = calloc(strlen(hermes_parser->current_token->value) + 1, sizeof(char));
         strcpy(function_name, hermes_parser->current_token->value);
@@ -889,7 +955,7 @@ AST_T* hermes_parser_parse_function_definition(hermes_parser_T* hermes_parser, h
 
             AST_T* child_def = (void*)0;
 
-            if (is_data_type(hermes_parser->current_token->value))
+            if (is_data_type(hermes_parser->current_token->value) || is_data_type_modifier(hermes_parser->current_token->value))
             {
                 child_def = hermes_parser_parse_function_definition(hermes_parser, scope);
             }
@@ -909,7 +975,7 @@ AST_T* hermes_parser_parse_function_definition(hermes_parser_T* hermes_parser, h
             {
                 hermes_parser_eat(hermes_parser, TOKEN_COMMA);
                 
-                if (is_data_type(hermes_parser->current_token->value))
+                if (is_data_type(hermes_parser->current_token->value) || is_data_type_modifier(hermes_parser->current_token->value))
                 {
                     child_def = hermes_parser_parse_function_definition(hermes_parser, scope);
                 }
@@ -971,15 +1037,15 @@ AST_T* hermes_parser_parse_function_definition(hermes_parser_T* hermes_parser, h
              */
             switch(ast_variable_definition->variable_value->type)
             {
-                case AST_OBJECT: if (strcmp(ast_type->type_value, DATA_TYPE_OBJECT) != 0) hermes_parser_type_error(hermes_parser); break;
-                case AST_ENUM: if (strcmp(ast_type->type_value, DATA_TYPE_ENUM) != 0) hermes_parser_type_error(hermes_parser); break;
-                case AST_STRING: if (strcmp(ast_type->type_value, DATA_TYPE_STRING) != 0) hermes_parser_type_error(hermes_parser); break;
-                case AST_INTEGER: if (strcmp(ast_type->type_value, DATA_TYPE_INT) != 0) hermes_parser_type_error(hermes_parser); break;
-                case AST_FLOAT: if (strcmp(ast_type->type_value, DATA_TYPE_FLOAT) != 0) hermes_parser_type_error(hermes_parser); break;
-                case AST_BOOLEAN: if (strcmp(ast_type->type_value, DATA_TYPE_BOOLEAN) != 0) hermes_parser_type_error(hermes_parser); break;
-                case AST_LIST: if (strcmp(ast_type->type_value, DATA_TYPE_LIST) != 0) hermes_parser_type_error(hermes_parser); break;
-                case AST_CHAR: if (strcmp(ast_type->type_value, DATA_TYPE_CHAR) != 0) hermes_parser_type_error(hermes_parser); break;
-                case AST_COMPOUND: if (strcmp(ast_type->type_value, DATA_TYPE_SOURCE) != 0) hermes_parser_type_error(hermes_parser); break;
+                case AST_OBJECT: if (ast_type->type_value->type != DATA_TYPE_OBJECT) hermes_parser_type_error(hermes_parser); break;
+                case AST_ENUM: if (ast_type->type_value->type != DATA_TYPE_ENUM) hermes_parser_type_error(hermes_parser); break;
+                case AST_STRING: if (ast_type->type_value->type != DATA_TYPE_STRING) hermes_parser_type_error(hermes_parser); break;
+                case AST_INTEGER: if (ast_type->type_value->type != DATA_TYPE_INT) hermes_parser_type_error(hermes_parser); break;
+                case AST_FLOAT: if (ast_type->type_value->type != DATA_TYPE_FLOAT) hermes_parser_type_error(hermes_parser); break;
+                case AST_BOOLEAN: if (ast_type->type_value->type != DATA_TYPE_BOOLEAN) hermes_parser_type_error(hermes_parser); break;
+                case AST_LIST: if (ast_type->type_value->type != DATA_TYPE_LIST) hermes_parser_type_error(hermes_parser); break;
+                case AST_CHAR: if (ast_type->type_value->type != DATA_TYPE_CHAR) hermes_parser_type_error(hermes_parser); break;
+                case AST_COMPOUND: if (ast_type->type_value->type != DATA_TYPE_SOURCE) hermes_parser_type_error(hermes_parser); break;
                 default: /* silence */; break;
             }
         }

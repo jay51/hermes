@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "dynamic_list.h"
 #include "token.h"
+#include "data_type.h"
 
 
 struct RUNTIME_STRUCT;
@@ -49,12 +50,13 @@ typedef struct AST_STRUCT
 
     int line_n;
     int int_value;
+    long int long_int_value;
     unsigned int boolean_value;
     unsigned int is_object_child;
     float float_value;
     char char_value;
     char* string_value;
-    char* type_value;
+    data_type_T* type_value;
     char* variable_name;
     struct AST_STRUCT* variable_value;
     struct AST_STRUCT* variable_type;

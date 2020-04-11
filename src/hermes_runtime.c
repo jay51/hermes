@@ -139,6 +139,7 @@ static AST_T* _runtime_function_call(runtime_T* runtime, AST_T* fcall, AST_T* fd
         char* arg_name = ast_fdef_arg->variable_name;
 
         AST_T* new_variable_def = init_ast(AST_VARIABLE_DEFINITION);
+        new_variable_def->variable_type = ast_fdef_arg->variable_type;
 
         if (ast_arg->type == AST_VARIABLE)
         {
@@ -384,7 +385,10 @@ AST_T* runtime_visit_variable(runtime_T* runtime, AST_T* node)
                     if (!object_var_def->variable_value)
                         return object_var_def;
 
-                    return runtime_visit(runtime, object_var_def->variable_value);
+                    AST_T* value = runtime_visit(runtime, object_var_def->variable_value);
+                    value->type_value = object_var_def->variable_type->type_value;
+
+                    return value;
                 }
             }
         }
@@ -428,7 +432,10 @@ AST_T* runtime_visit_variable(runtime_T* runtime, AST_T* node)
 
             if (variable_definition)
             {
-                return runtime_visit(runtime, variable_definition->variable_value);
+                AST_T* value = runtime_visit(runtime, variable_definition->variable_value);
+                value->type_value = variable_definition->variable_type->type_value;
+
+                return value;
             }
         }
 
@@ -456,7 +463,10 @@ AST_T* runtime_visit_variable(runtime_T* runtime, AST_T* node)
 
                 if (variable_definition)
                 {
-                    return runtime_visit(runtime, variable_definition->variable_value);
+                    AST_T* value = runtime_visit(runtime, variable_definition->variable_value);
+                    value->type_value = variable_definition->variable_type->type_value;
+
+                    return value;
                 }
             }
 
@@ -652,13 +662,13 @@ AST_T* runtime_visit_variable_modifier(runtime_T* runtime, AST_T* node)
             switch (node->binop_operator->type)
             {
                 case TOKEN_PLUS_EQUALS: {
-                    if (strcmp(ast_variable_definition->variable_type->type_value, "int") == 0)
+                    if (ast_variable_definition->variable_type->type_value->type == DATA_TYPE_INT)
                     {
                         ast_variable_definition->variable_value->int_value += value->int_value ? value->int_value : value->float_value;
                         ast_variable_definition->variable_value->float_value = (float) ast_variable_definition->variable_value->int_value;
                         return ast_variable_definition->variable_value;
                     }
-                    else if (strcmp(ast_variable_definition->variable_type->type_value, "float") == 0)
+                    else if (ast_variable_definition->variable_type->type_value->type == DATA_TYPE_FLOAT)
                     {
                         ast_variable_definition->variable_value->float_value += value->float_value ? value->float_value : value->int_value;
                         ast_variable_definition->variable_value->int_value = (int) ast_variable_definition->variable_value->float_value;
@@ -666,13 +676,13 @@ AST_T* runtime_visit_variable_modifier(runtime_T* runtime, AST_T* node)
                     }
                 } break;
                 case TOKEN_MINUS_EQUALS: {
-                    if (strcmp(ast_variable_definition->variable_type->type_value, "int") == 0)
+                    if (ast_variable_definition->variable_type->type_value->type == DATA_TYPE_INT)
                     {
                         ast_variable_definition->variable_value->int_value -= value->int_value ? value->int_value : value->float_value;
                         ast_variable_definition->variable_value->float_value = (float) ast_variable_definition->variable_value->int_value;
                         return ast_variable_definition->variable_value;
                     }
-                    else if (strcmp(ast_variable_definition->variable_type->type_value, "float") == 0)
+                    else if (ast_variable_definition->variable_type->type_value->type == DATA_TYPE_FLOAT)
                     {
                         ast_variable_definition->variable_value->float_value -= value->float_value ? value->float_value : value->int_value;
                         ast_variable_definition->variable_value->int_value = (int) ast_variable_definition->variable_value->float_value;
@@ -680,13 +690,13 @@ AST_T* runtime_visit_variable_modifier(runtime_T* runtime, AST_T* node)
                     }
                 } break;
                 case TOKEN_STAR_EQUALS: {
-                    if (strcmp(ast_variable_definition->variable_type->type_value, "int") == 0)
+                    if (ast_variable_definition->variable_type->type_value->type == DATA_TYPE_INT)
                     {
                         ast_variable_definition->variable_value->int_value *= value->int_value ? value->int_value : value->float_value;
                         ast_variable_definition->variable_value->float_value = (float) ast_variable_definition->variable_value->int_value;
                         return ast_variable_definition->variable_value;
                     }
-                    else if (strcmp(ast_variable_definition->variable_type->type_value, "float") == 0)
+                    else if (ast_variable_definition->variable_type->type_value->type == DATA_TYPE_FLOAT)
                     {
                         ast_variable_definition->variable_value->float_value *= value->float_value ? value->float_value : value->int_value;
                         ast_variable_definition->variable_value->int_value = (int) ast_variable_definition->variable_value->float_value;
@@ -765,21 +775,21 @@ AST_T* runtime_function_lookup(runtime_T* runtime, hermes_scope_T* scope, AST_T*
     {
         
         AST_T* final_result = init_ast(AST_NULL);
-        char* type_value = function_definition->function_definition_type->type_value;
+        int data_type = function_definition->function_definition_type->type_value->type;
 
-        if (strcmp(type_value, "int") == 0)
+        if (data_type == DATA_TYPE_INT)
         {
             final_result->type = AST_INTEGER;
             final_result->int_value = 0;
         }
         else
-        if (strcmp(type_value, "float") == 0)
+        if (data_type == DATA_TYPE_FLOAT)
         {
             final_result->type = AST_FLOAT;
             final_result->float_value = 0.0f;
         }
         else
-        if (strcmp(type_value, "string") == 0)
+        if (data_type == DATA_TYPE_STRING)
         {
             final_result->type = AST_STRING;
             final_result->string_value = calloc(1, sizeof(char));
@@ -1189,7 +1199,10 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
             if (left->type == AST_INTEGER && right->type == AST_INTEGER)
             {
                 return_value = init_ast(AST_INTEGER);
-                return_value->int_value = left->int_value + right->int_value;
+
+                return_value->int_value =
+                    (data_type_has_modifier(left->type_value, DATA_TYPE_MODIFIER_LONG) ? left->long_int_value : left->int_value) +
+                    (data_type_has_modifier(left->type_value, DATA_TYPE_MODIFIER_LONG) ? right->long_int_value : right->int_value);
 
                 return return_value;
             }
@@ -1203,14 +1216,22 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
             if (left->type == AST_INTEGER && right->type == AST_FLOAT)
             {
                 return_value = init_ast(AST_FLOAT);
-                return_value->float_value = left->int_value + right->float_value;
+                
+                if (data_type_has_modifier(left->type_value, DATA_TYPE_MODIFIER_LONG))
+                    return_value->float_value = left->long_int_value + right->float_value;
+                else
+                    return_value->float_value = left->int_value + right->float_value;
 
                 return return_value;
             }
             if (left->type == AST_FLOAT && right->type == AST_INTEGER)
             {
                 return_value = init_ast(AST_FLOAT);
-                return_value->float_value = left->float_value + right->int_value;
+                
+                if (data_type_has_modifier(right->type_value, DATA_TYPE_MODIFIER_LONG))
+                    return_value->float_value = left->float_value + right->long_int_value;
+                else
+                    return_value->float_value = left->float_value + right->int_value;
 
                 return return_value;
             }
@@ -1229,9 +1250,12 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
                 const char* int_str_template = "%d";
                 size_t int_padding = sizeof(char) * 4;
                 char* int_str = calloc(strlen(int_str_template + 1 + int_padding), sizeof(char));
-                sprintf(int_str, int_str_template, right->int_value);
-
-
+                sprintf(
+                    int_str,
+                    int_str_template,
+                    data_type_has_modifier(right->type_value, DATA_TYPE_MODIFIER_LONG) ? right->long_int_value : right->int_value
+                );
+                
                 char* new_str = calloc(strlen(left->string_value) + strlen(int_str) + 1, sizeof(char));
                 strcat(new_str, left->string_value);
                 strcat(new_str, int_str);
@@ -1246,8 +1270,11 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
                 const char* int_str_template = "%d";
                 size_t int_padding = sizeof(char) * 4;
                 char* int_str = calloc(strlen(int_str_template + 1 + int_padding), sizeof(char));
-                sprintf(int_str, int_str_template, left->int_value);
-
+                sprintf(
+                    int_str,
+                    int_str_template,
+                    data_type_has_modifier(left->type_value, DATA_TYPE_MODIFIER_LONG) ? left->long_int_value : left->int_value
+                );
 
                 char* new_str = calloc(strlen(right->string_value) + strlen(int_str) + 1, sizeof(char));
                 strcat(new_str, int_str);
@@ -1263,7 +1290,10 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
             if (left->type == AST_INTEGER && right->type == AST_INTEGER)
             {
                 return_value = init_ast(AST_INTEGER);
-                return_value->int_value = left->int_value - right->int_value;
+                
+                return_value->int_value =
+                    (data_type_has_modifier(left->type_value, DATA_TYPE_MODIFIER_LONG) ? left->long_int_value : left->int_value) -
+                    (data_type_has_modifier(right->type_value, DATA_TYPE_MODIFIER_LONG) ? right->long_int_value : right->int_value);
 
                 return return_value;
             }
@@ -1277,14 +1307,22 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
             if (left->type == AST_INTEGER && right->type == AST_FLOAT)
             {
                 return_value = init_ast(AST_FLOAT);
-                return_value->float_value = left->int_value - right->float_value;
+
+                if (data_type_has_modifier(left->type_value, DATA_TYPE_MODIFIER_LONG))
+                    return_value->float_value = left->long_int_value - right->float_value;
+                else
+                    return_value->float_value = left->int_value - right->float_value;
 
                 return return_value;
             }
             if (left->type == AST_FLOAT && right->type == AST_INTEGER)
             {
                 return_value = init_ast(AST_FLOAT);
-                return_value->float_value = left->float_value - right->int_value;
+                
+                if (data_type_has_modifier(right->type_value, DATA_TYPE_MODIFIER_LONG))
+                    return_value->float_value = left->float_value - right->long_int_value;
+                else
+                    return_value->float_value = left->float_value - right->int_value;
 
                 return return_value;
             }
@@ -1293,7 +1331,10 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
             if (left->type == AST_INTEGER && right->type == AST_INTEGER)
             {
                 return_value = init_ast(AST_INTEGER);
-                return_value->int_value = left->int_value / right->int_value;
+                
+                return_value->int_value =
+                    (data_type_has_modifier(left->type_value, DATA_TYPE_MODIFIER_LONG) ? left->long_int_value : left->int_value) /
+                    (data_type_has_modifier(right->type_value, DATA_TYPE_MODIFIER_LONG) ? right->long_int_value : right->int_value) ;
 
                 return return_value;
             }
@@ -1307,14 +1348,22 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
             if (left->type == AST_INTEGER && right->type == AST_FLOAT)
             {
                 return_value = init_ast(AST_FLOAT);
-                return_value->float_value = left->int_value / right->float_value;
+                
+                if (data_type_has_modifier(left->type_value, DATA_TYPE_MODIFIER_LONG))
+                    return_value->float_value = left->long_int_value / right->float_value;
+                else
+                    return_value->float_value = left->int_value / right->float_value;
 
                 return return_value;
             }
             if (left->type == AST_FLOAT && right->type == AST_INTEGER)
             {
                 return_value = init_ast(AST_FLOAT);
-                return_value->float_value = left->float_value / right->int_value;
+                
+                if (data_type_has_modifier(right->type_value, DATA_TYPE_MODIFIER_LONG))
+                    return_value->float_value = left->float_value / right->long_int_value;
+                else
+                    return_value->float_value = left->float_value / right->int_value;
 
                 return return_value;
             }
@@ -1323,7 +1372,9 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
             if (left->type == AST_INTEGER && right->type == AST_INTEGER)
             {
                 return_value = init_ast(AST_INTEGER);
-                return_value->int_value = left->int_value * right->int_value;
+                return_value->int_value =
+                    (data_type_has_modifier(left->type_value, DATA_TYPE_MODIFIER_LONG) ? left->long_int_value : left->int_value) *
+                    (data_type_has_modifier(right->type_value, DATA_TYPE_MODIFIER_LONG) ? right->long_int_value : right->int_value);
 
                 return return_value;
             }
@@ -1337,14 +1388,22 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
             if (left->type == AST_INTEGER && right->type == AST_FLOAT)
             {
                 return_value = init_ast(AST_FLOAT);
-                return_value->float_value = left->int_value * right->float_value;
+
+                if (data_type_has_modifier(left->type_value, DATA_TYPE_MODIFIER_LONG))
+                    return_value->float_value = left->long_int_value * right->float_value;
+                else
+                    return_value->float_value = left->int_value * right->float_value;
 
                 return return_value;
             }
             if (left->type == AST_FLOAT && right->type == AST_INTEGER)
             {
                 return_value = init_ast(AST_FLOAT);
-                return_value->float_value = left->float_value * right->int_value;
+
+                if (data_type_has_modifier(right->type_value, DATA_TYPE_MODIFIER_LONG))
+                    return_value->float_value = left->float_value * right->long_int_value;
+                else
+                    return_value->float_value = left->float_value * right->int_value;
 
                 return return_value;
             }
@@ -1353,7 +1412,9 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
             if (left->type == AST_INTEGER && right->type == AST_INTEGER)
             {
                 return_value = init_ast(AST_BOOLEAN);
-                return_value->boolean_value = left->int_value && right->int_value;
+                return_value->boolean_value =
+                    data_type_has_modifier(left->type_value, DATA_TYPE_MODIFIER_LONG) ? left->long_int_value : left->int_value &&
+                    data_type_has_modifier(right->type_value, DATA_TYPE_MODIFIER_LONG) ? right->long_int_value : left->int_value;
 
                 return return_value;
             }
@@ -1367,7 +1428,11 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
             if (left->type == AST_INTEGER && right->type == AST_FLOAT)
             {
                 return_value = init_ast(AST_BOOLEAN);
-                return_value->boolean_value = left->int_value && right->float_value;
+                
+                if (data_type_has_modifier(left->type_value, DATA_TYPE_MODIFIER_LONG))
+                    return_value->boolean_value = left->long_int_value && right->float_value;
+                else
+                    return_value->boolean_value = left->int_value && right->float_value;
 
                 return return_value;
             }
@@ -1383,7 +1448,9 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
             if (left->type == AST_INTEGER && right->type == AST_INTEGER)
             {
                 return_value = init_ast(AST_BOOLEAN);
-                return_value->boolean_value = left->int_value < right->int_value;
+                return_value->boolean_value =
+                    (data_type_has_modifier(left->type_value, DATA_TYPE_MODIFIER_LONG) ? left->long_int_value : left->int_value) <
+                    (data_type_has_modifier(right->type_value, DATA_TYPE_MODIFIER_LONG) ? right->long_int_value : right->int_value);
 
                 return return_value;
             }
@@ -1397,14 +1464,22 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
             if (left->type == AST_INTEGER && right->type == AST_FLOAT)
             {
                 return_value = init_ast(AST_BOOLEAN);
-                return_value->boolean_value = left->int_value < right->float_value;
+                
+                if (data_type_has_modifier(left->type_value, DATA_TYPE_MODIFIER_LONG))
+                    return_value->boolean_value = left->long_int_value < right->float_value;
+                else
+                    return_value->boolean_value = left->int_value < right->float_value;
 
                 return return_value;
             }
             if (left->type == AST_FLOAT && right->type == AST_INTEGER)
             {
                 return_value = init_ast(AST_BOOLEAN);
-                return_value->boolean_value = left->float_value < right->int_value;
+
+                if (data_type_has_modifier(right->type_value, DATA_TYPE_MODIFIER_LONG))
+                    return_value->boolean_value = left->float_value < right->long_int_value;
+                else
+                    return_value->boolean_value = left->float_value < right->int_value;
 
                 return return_value;
             }
@@ -1413,7 +1488,9 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
             if (left->type == AST_INTEGER && right->type == AST_INTEGER)
             {
                 return_value = init_ast(AST_BOOLEAN);
-                return_value->boolean_value = left->int_value > right->int_value;
+                return_value->boolean_value =
+                    (data_type_has_modifier(left->type_value, DATA_TYPE_MODIFIER_LONG) ? left->long_int_value : left->int_value) >
+                    (data_type_has_modifier(right->type_value, DATA_TYPE_MODIFIER_LONG) ? right->long_int_value : right->int_value);
 
                 return return_value;
             }
@@ -1427,14 +1504,22 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
             if (left->type == AST_INTEGER && right->type == AST_FLOAT)
             {
                 return_value = init_ast(AST_BOOLEAN);
-                return_value->boolean_value = left->int_value > right->float_value;
+                
+                if (data_type_has_modifier(left->type_value, DATA_TYPE_MODIFIER_LONG))
+                    return_value->boolean_value = left->long_int_value > right->float_value;
+                else
+                    return_value->boolean_value = left->int_value > right->float_value;
 
                 return return_value;
             }
             if (left->type == AST_FLOAT && right->type == AST_INTEGER)
             {
                 return_value = init_ast(AST_BOOLEAN);
-                return_value->boolean_value = left->float_value > right->int_value;
+
+                if (data_type_has_modifier(right->type_value, DATA_TYPE_MODIFIER_LONG))
+                    return_value->boolean_value = left->float_value > right->long_int_value;
+                else
+                    return_value->boolean_value = left->float_value > right->int_value;
 
                 return return_value;
             }
@@ -1443,21 +1528,29 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
             if (left->type == AST_INTEGER && right->type == AST_INTEGER)
             {
                 return_value = init_ast(AST_BOOLEAN);
-                return_value->boolean_value = left->int_value == right->int_value;
+
+                return_value->boolean_value =
+                    (data_type_has_modifier(left->type_value, DATA_TYPE_MODIFIER_LONG) ? left->long_int_value : left->int_value) ==
+                    (data_type_has_modifier(right->type_value, DATA_TYPE_MODIFIER_LONG) ? right->long_int_value : right->int_value);
 
                 return return_value;
             }
             if (left->type == AST_INTEGER && right->type == AST_FLOAT)
             {
                 return_value = init_ast(AST_BOOLEAN);
-                return_value->boolean_value = left->int_value == right->float_value;
+                
+                if (data_type_has_modifier(left->type_value, DATA_TYPE_MODIFIER_LONG))
+                    return_value->boolean_value = left->long_int_value == right->float_value;
+                else
+                    return_value->boolean_value = left->int_value == right->float_value;
 
                 return return_value;
             }
             if (left->type == AST_INTEGER && right->type == AST_NULL)
             {
                 return_value = init_ast(AST_BOOLEAN);
-                return_value->boolean_value = left->int_value == 0;
+                return_value->boolean_value =
+                    data_type_has_modifier(left->type_value, DATA_TYPE_MODIFIER_LONG) ? left->long_int_value == 0 : left->int_value == 0;
 
                 return return_value;
             }
@@ -1471,7 +1564,11 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
             if (left->type == AST_FLOAT && right->type == AST_INTEGER)
             {
                 return_value = init_ast(AST_BOOLEAN);
-                return_value->boolean_value = left->float_value == right->int_value;
+
+                return_value->boolean_value =
+                    left->float_value == data_type_has_modifier(right->type_value, DATA_TYPE_MODIFIER_LONG) ?
+                    right->long_int_value :
+                    right->int_value;
 
                 return return_value;
             }
@@ -1515,21 +1612,27 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
             if (left->type == AST_INTEGER && right->type == AST_INTEGER)
             {
                 return_value = init_ast(AST_BOOLEAN);
-                return_value->boolean_value = left->int_value != right->int_value;
+                return_value->boolean_value =
+                    (data_type_has_modifier(left->type_value, DATA_TYPE_MODIFIER_LONG) ? left->long_int_value : left->int_value) !=
+                    (data_type_has_modifier(right->type_value, DATA_TYPE_MODIFIER_LONG) ? right->long_int_value : right->int_value);
 
                 return return_value;
             }
             if (left->type == AST_INTEGER && right->type == AST_FLOAT)
             {
                 return_value = init_ast(AST_BOOLEAN);
-                return_value->boolean_value = left->int_value != right->float_value;
+
+                if (data_type_has_modifier(left->type_value, DATA_TYPE_MODIFIER_LONG))
+                    return_value->boolean_value = left->long_int_value != right->float_value;
+                else
+                    return_value->boolean_value = left->int_value != right->float_value;
 
                 return return_value;
             }
             if (left->type == AST_INTEGER && right->type == AST_NULL)
             {
                 return_value = init_ast(AST_BOOLEAN);
-                return_value->boolean_value = left->int_value != 0;
+                return_value->boolean_value = data_type_has_modifier(left->type_value, DATA_TYPE_MODIFIER_LONG) ? left->long_int_value != 0 : left->int_value != 0;
 
                 return return_value;
             }
@@ -1543,7 +1646,11 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
             if (left->type == AST_FLOAT && right->type == AST_INTEGER)
             {
                 return_value = init_ast(AST_BOOLEAN);
-                return_value->boolean_value = left->float_value != right->int_value;
+
+                if (data_type_has_modifier(right->type_value, DATA_TYPE_MODIFIER_LONG))
+                    return_value->boolean_value = left->float_value != right->long_int_value;
+                else
+                    return_value->boolean_value = left->float_value != right->int_value;
 
                 return return_value;
             }
