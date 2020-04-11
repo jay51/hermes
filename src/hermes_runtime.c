@@ -713,49 +713,10 @@ AST_T* runtime_function_lookup(runtime_T* runtime, hermes_scope_T* scope, AST_T*
 {
     AST_T* function_definition = (void*)0;
 
-    //printf("%d\n", node->type);
     AST_T* visited_expr = runtime_visit(runtime, node->function_call_expr);
 
     if (visited_expr->type == AST_FUNCTION_DEFINITION)
         function_definition = visited_expr;
-
-
-    /**
-     * First, check if there is a variable definition assigned with a 
-     * function definition.
-     */
-    /*for (int i = 0; i < scope->variable_definitions->size; i++)
-    {
-        AST_T* vardef = (AST_T*) scope->variable_definitions->items[i];
-
-        if (strcmp(node->function_call_name, vardef->variable_name) == 0)
-        {
-            if (vardef->variable_value->type == AST_FUNCTION_DEFINITION)
-            {
-                function_definition = vardef->variable_value;
-                break;
-            }
-        }
-    }*/
-
-    /**
-     * If we did not find a variable definition assigned with a function
-     * defintion, then keep looking in function definitions instead.
-     */
-    /*if (function_definition == (void*) 0)
-    {
-        for (int i = 0; i < scope->function_definitions->size; i++)
-        {
-            function_definition = (AST_T*) scope->function_definitions->items[i];
-            
-            if (strcmp(function_definition->function_name, node->function_call_name) == 0)
-            {
-                break; 
-            }
-
-            function_definition = (void*)0;
-        }
-    }*/
 
     if (function_definition == (void*)0)
         return (void*)0;
@@ -1064,7 +1025,12 @@ AST_T* runtime_visit_attribute_access(runtime_T* runtime, AST_T* node)
         }
     }
 
-    // call a function attached to some sort of value.
+    /**
+     * Call a function attached to some sort of value.
+     *
+     * TODO: dont do this. It might be possible to fetch the function
+     * definition in antoher way. Maybe in visit_variable?
+     */
     if (node->binop_right->type == AST_FUNCTION_CALL)
     {
         if (node->binop_right->function_call_expr->type == AST_VARIABLE)
