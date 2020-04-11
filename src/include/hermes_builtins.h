@@ -1,35 +1,44 @@
 #ifndef HERMES_BUILTINS_H
 #define HERMES_BUILTINS_H
 #include "AST.h"
+#include "hermes_runtime.h"
 
 
-AST_T* hermes_builtin_function_print(AST_T* self, dynamic_list_T* args);
+AST_T* hermes_builtin_function_print(runtime_T* runtime, AST_T* self, dynamic_list_T* args);
 
-AST_T* hermes_builtin_function_aprint(AST_T* self, dynamic_list_T* args);
+AST_T* hermes_builtin_function_stdoutbuffer(runtime_T* runtime, AST_T* self, dynamic_list_T* args);
 
-AST_T* hermes_builtin_function_include(AST_T* self, dynamic_list_T* args);
+AST_T* hermes_builtin_function_aprint(runtime_T* runtime, AST_T* self, dynamic_list_T* args);
 
-AST_T* hermes_builtin_function_wad(AST_T* self, dynamic_list_T* args);
+AST_T* hermes_builtin_function_include(runtime_T* runtime, AST_T* self, dynamic_list_T* args);
 
-AST_T* hermes_builtin_function_lad(AST_T* self, dynamic_list_T* args);
+AST_T* hermes_builtin_function_wad(runtime_T* runtime, AST_T* self, dynamic_list_T* args);
 
-AST_T* hermes_builtin_function_fopen(AST_T* self, dynamic_list_T* args);
+AST_T* hermes_builtin_function_lad(runtime_T* runtime, AST_T* self, dynamic_list_T* args);
 
-AST_T* hermes_builtin_function_fclose(AST_T* self, dynamic_list_T* args);
+AST_T* hermes_builtin_function_fopen(runtime_T* runtime, AST_T* self, dynamic_list_T* args);
 
-AST_T* hermes_builtin_function_fputs(AST_T* self, dynamic_list_T* args);
+AST_T* hermes_builtin_function_fclose(runtime_T* runtime, AST_T* self, dynamic_list_T* args);
 
-AST_T* hermes_builtin_function_input(AST_T* self, dynamic_list_T* args);
+AST_T* hermes_builtin_function_fputs(runtime_T* runtime, AST_T* self, dynamic_list_T* args);
 
-AST_T* hermes_builtin_function_char_to_bin(AST_T* self, dynamic_list_T* args);
+AST_T* hermes_builtin_function_input(runtime_T* runtime, AST_T* self, dynamic_list_T* args);
 
-AST_T* hermes_builtin_function_char_to_oct(AST_T* self, dynamic_list_T* args);
+AST_T* hermes_builtin_function_char_to_bin(runtime_T* runtime, AST_T* self, dynamic_list_T* args);
 
-AST_T* hermes_builtin_function_char_to_dec(AST_T* self, dynamic_list_T* args);
+AST_T* hermes_builtin_function_char_to_oct(runtime_T* runtime, AST_T* self, dynamic_list_T* args);
 
-AST_T* hermes_builtin_function_char_to_hex(AST_T* self, dynamic_list_T* args);
+AST_T* hermes_builtin_function_char_to_dec(runtime_T* runtime, AST_T* self, dynamic_list_T* args);
 
-AST_T* hermes_builtin_function_time(AST_T* self, dynamic_list_T* args);
+AST_T* hermes_builtin_function_char_to_hex(runtime_T* runtime, AST_T* self, dynamic_list_T* args);
+
+AST_T* hermes_builtin_function_time(runtime_T* runtime, AST_T* self, dynamic_list_T* args);
+
+AST_T* hermes_builtin_function_dload(runtime_T* runtime, AST_T* self, dynamic_list_T* args);
+
+AST_T* hermes_builtin_function_free(runtime_T* runtime, AST_T* self, dynamic_list_T* args);
+
+AST_T* hermes_builtin_function_visit(runtime_T* runtime, AST_T* self, dynamic_list_T* args);
 
 AST_T* INITIALIZED_NOOP;
 #endif

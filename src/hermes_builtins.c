@@ -4,6 +4,7 @@
 #include "include/hermes_parser.h"
 #include "include/string_utils.h"
 #include "include/io.h"
+#include "include/dl.h"
 #include <string.h>
 #include <time.h>
 
@@ -15,7 +16,7 @@
  *
  * @return AST_T*
  */
-AST_T* hermes_builtin_function_print(AST_T* self, dynamic_list_T* args)
+AST_T* hermes_builtin_function_print(runtime_T* runtime, AST_T* self, dynamic_list_T* args)
 {
     for (int i = 0; i < args->size; i++)
     {
@@ -36,6 +37,29 @@ AST_T* hermes_builtin_function_print(AST_T* self, dynamic_list_T* args)
     return INITIALIZED_NOOP;
 }
 
+AST_T* hermes_builtin_function_stdoutbuffer(runtime_T* runtime, AST_T* self, dynamic_list_T* args)
+{
+    for (int i = 0; i < args->size; i++)
+    {
+        AST_T* ast_arg = (AST_T*) runtime_visit(runtime, args->items[i]);
+        char* str = ast_to_string(ast_arg);
+
+        if (str == (void*)0)
+        {
+            hermes_runtime_buffer_stdout(runtime, "(void*)0\n");
+        }
+        else
+        {
+            str = realloc(str, (strlen(str) + 2) * sizeof(char));
+            strcat(str, "\n");
+            hermes_runtime_buffer_stdout(runtime, str);
+            free(str);
+        }
+    }
+
+    return INITIALIZED_NOOP;
+}
+
 /**
  * Print the adress of a value
  *
@@ -44,7 +68,7 @@ AST_T* hermes_builtin_function_print(AST_T* self, dynamic_list_T* args)
  *
  * @return AST_T*
  */
-AST_T* hermes_builtin_function_aprint(AST_T* self, dynamic_list_T* args)
+AST_T* hermes_builtin_function_aprint(runtime_T* runtime, AST_T* self, dynamic_list_T* args)
 {
     for (int i = 0; i < args->size; i++)
         printf("%p\n", (AST_T*) args->items[i]);
@@ -61,7 +85,7 @@ AST_T* hermes_builtin_function_aprint(AST_T* self, dynamic_list_T* args)
  *
  * @return AST_T*
  */
-AST_T* hermes_builtin_function_include(AST_T* self, dynamic_list_T* args)
+AST_T* hermes_builtin_function_include(runtime_T* runtime, AST_T* self, dynamic_list_T* args)
 {
     runtime_expect_args(args, 1, (int[]) {AST_STRING});
 
@@ -85,7 +109,7 @@ AST_T* hermes_builtin_function_include(AST_T* self, dynamic_list_T* args)
  *
  * @return AST_T*
  */
-AST_T* hermes_builtin_function_wad(AST_T* self, dynamic_list_T* args)
+AST_T* hermes_builtin_function_wad(runtime_T* runtime, AST_T* self, dynamic_list_T* args)
 {
     runtime_expect_args(args, 2, (int[]) {AST_COMPOUND, AST_STRING});
 
@@ -136,7 +160,7 @@ AST_T* hermes_builtin_function_wad(AST_T* self, dynamic_list_T* args)
  *
  * @return AST_T*
  */
-AST_T* hermes_builtin_function_lad(AST_T* self, dynamic_list_T* args)
+AST_T* hermes_builtin_function_lad(runtime_T* runtime, AST_T* self, dynamic_list_T* args)
 {
     runtime_expect_args(args, 1, (int[]) {AST_STRING});
     
@@ -171,7 +195,7 @@ AST_T* hermes_builtin_function_lad(AST_T* self, dynamic_list_T* args)
     return loaded;
 }
 
-static AST_T* object_file_function_read(AST_T* self, dynamic_list_T* args)
+static AST_T* object_file_function_read(runtime_T* runtime, AST_T* self, dynamic_list_T* args)
 {
     FILE* f = self->object_value;
 
@@ -203,7 +227,7 @@ static AST_T* object_file_function_read(AST_T* self, dynamic_list_T* args)
  *
  * @return AST_T*
  */
-AST_T* hermes_builtin_function_fopen(AST_T* self, dynamic_list_T* args)
+AST_T* hermes_builtin_function_fopen(runtime_T* runtime, AST_T* self, dynamic_list_T* args)
 {
     runtime_expect_args(args, 2, (int[]) {AST_STRING, AST_STRING});
 
@@ -235,7 +259,7 @@ AST_T* hermes_builtin_function_fopen(AST_T* self, dynamic_list_T* args)
  *
  * @return AST_T*
  */
-AST_T* hermes_builtin_function_fclose(AST_T* self, dynamic_list_T* args)
+AST_T* hermes_builtin_function_fclose(runtime_T* runtime, AST_T* self, dynamic_list_T* args)
 {
     runtime_expect_args(args, 1, (int[]) {AST_OBJECT});
 
@@ -255,7 +279,7 @@ AST_T* hermes_builtin_function_fclose(AST_T* self, dynamic_list_T* args)
  *
  * @return AST_T*
  */
-AST_T* hermes_builtin_function_fputs(AST_T* self, dynamic_list_T* args)
+AST_T* hermes_builtin_function_fputs(runtime_T* runtime, AST_T* self, dynamic_list_T* args)
 {
     runtime_expect_args(args, 2, (int[]) {AST_STRING, AST_OBJECT});
 
@@ -278,7 +302,7 @@ AST_T* hermes_builtin_function_fputs(AST_T* self, dynamic_list_T* args)
  *
  * @return AST_T*
  */
-AST_T* hermes_builtin_function_input(AST_T* self, dynamic_list_T* args)
+AST_T* hermes_builtin_function_input(runtime_T* runtime, AST_T* self, dynamic_list_T* args)
 {
     char* str;
     int c;
@@ -337,7 +361,7 @@ static char* my_itoa(int num, char *str)
     return str;
 }
 
-AST_T* hermes_builtin_function_char_to_bin(AST_T* self, dynamic_list_T* args)
+AST_T* hermes_builtin_function_char_to_bin(runtime_T* runtime, AST_T* self, dynamic_list_T* args)
 {
     runtime_expect_args(args, 1, (int[]) {AST_CHAR});
 
@@ -372,7 +396,7 @@ AST_T* hermes_builtin_function_char_to_bin(AST_T* self, dynamic_list_T* args)
     return ast_string;
 }
 
-AST_T* hermes_builtin_function_char_to_oct(AST_T* self, dynamic_list_T* args)
+AST_T* hermes_builtin_function_char_to_oct(runtime_T* runtime, AST_T* self, dynamic_list_T* args)
 {
     runtime_expect_args(args, 1, (int[]) {AST_CHAR});
 
@@ -407,7 +431,7 @@ AST_T* hermes_builtin_function_char_to_oct(AST_T* self, dynamic_list_T* args)
     return ast_string;
 }
 
-AST_T* hermes_builtin_function_char_to_dec(AST_T* self, dynamic_list_T* args)
+AST_T* hermes_builtin_function_char_to_dec(runtime_T* runtime, AST_T* self, dynamic_list_T* args)
 {
     runtime_expect_args(args, 1, (int[]) {AST_CHAR});
 
@@ -420,7 +444,7 @@ AST_T* hermes_builtin_function_char_to_dec(AST_T* self, dynamic_list_T* args)
     return ast_int;
 }
 
-AST_T* hermes_builtin_function_char_to_hex(AST_T* self, dynamic_list_T* args)
+AST_T* hermes_builtin_function_char_to_hex(runtime_T* runtime, AST_T* self, dynamic_list_T* args)
 {
     runtime_expect_args(args, 1, (int[]) {AST_CHAR});
 
@@ -436,7 +460,7 @@ AST_T* hermes_builtin_function_char_to_hex(AST_T* self, dynamic_list_T* args)
     return ast_string;
 }
 
-AST_T* hermes_builtin_function_time(AST_T* self, dynamic_list_T* args)
+AST_T* hermes_builtin_function_time(runtime_T* runtime, AST_T* self, dynamic_list_T* args)
 {
     AST_T* ast_obj = init_ast(AST_OBJECT);
     ast_obj->variable_type = init_ast(AST_TYPE);
@@ -451,4 +475,63 @@ AST_T* hermes_builtin_function_time(AST_T* self, dynamic_list_T* args)
     dynamic_list_append(ast_obj->object_children, ast_var);
 
     return ast_obj;
+}
+
+AST_T* hermes_builtin_function_dload(runtime_T* runtime, AST_T* self, dynamic_list_T* args)
+{
+    hermes_scope_T* scope = get_scope(runtime, self);
+
+    AST_T* ast_arg_0 = (AST_T*) args->items[0];
+    AST_T* visited_0 = runtime_visit(runtime, ast_arg_0);
+
+    AST_T* fdef = INITIALIZED_NOOP;
+    
+    for (int i = 1; i < args->size; i++)
+    {
+        AST_T* ast_arg = (AST_T*) args->items[i];
+        AST_T* visited_ast = runtime_visit(runtime, ast_arg);
+
+        fdef = get_dl_function(visited_0->string_value, visited_ast->string_value);
+        fdef->scope = (struct hermes_scope_T*) scope;
+
+        runtime_visit(runtime, fdef);
+    }
+
+    return fdef;
+}
+
+AST_T* hermes_builtin_function_free(runtime_T* runtime, AST_T* self, dynamic_list_T* args)
+{
+    hermes_scope_T* scope = get_scope(runtime, self);
+
+    for (int i = 0; i < args->size; i++)
+    {
+        AST_T* arg = (AST_T*) args->items[i];
+
+        if (arg->type != AST_VARIABLE)
+            continue;
+
+        for (int i = 0; i < scope->variable_definitions->size; i++)
+        {
+            AST_T* vardef = scope->variable_definitions->items[i];
+
+            if (strcmp(vardef->variable_name, arg->variable_name) == 0)
+            {
+                dynamic_list_remove(scope->variable_definitions, vardef, (void*)0);
+                break;
+            }
+        }
+    }
+
+    return INITIALIZED_NOOP;
+}
+
+AST_T* hermes_builtin_function_visit(runtime_T* runtime, AST_T* self, dynamic_list_T* args)
+{
+    AST_T* arg = (void*)0;
+
+    for (int i = 0; i < args->size; i++)
+        arg = runtime_visit(runtime, (AST_T*) args->items[i]);
+
+    return arg;
 }

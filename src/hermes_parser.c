@@ -506,6 +506,9 @@ AST_T* hermes_parser_parse_factor(hermes_parser_T* hermes_parser, hermes_scope_T
             a = ast_list_access;
         }
 
+        while(hermes_parser->current_token->type == TOKEN_LPAREN)
+            a = hermes_parser_parse_function_call(hermes_parser, scope, a);
+
         if (a)
             return a;
     }
