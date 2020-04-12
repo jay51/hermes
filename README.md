@@ -291,6 +291,18 @@ iterate x with char_iterator;
 iterate y with list_iterator;
 ```
 
+### iterate with index example
+```C
+list fruits = ["banana", "apple", "pear"]
+
+void fruit_iterator(string name, int index)
+{
+    print(index);
+}
+
+iterate fruits with fruit_iterator;
+```
+
 ### while example
 ```C
 int x = 0;
