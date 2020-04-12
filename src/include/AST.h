@@ -39,6 +39,7 @@ typedef struct AST_STRUCT
         AST_IF,
         AST_ELSE,
         AST_WHILE,
+        AST_FOR,
         AST_ATTRIBUTE_ACCESS,
         AST_LIST_ACCESS,
         AST_NEW,
@@ -71,6 +72,12 @@ typedef struct AST_STRUCT
     /* ==== unop ==== */
     struct AST_STRUCT* unop_right;
     token_T* unop_operator;
+
+    /* ==== for ==== */
+    struct AST_STRUCT* for_init_statement;
+    struct AST_STRUCT* for_test_expr;
+    struct AST_STRUCT* for_update_statement;
+    struct AST_STRUCT* for_body;
 
     dynamic_list_T* compound_value;
     dynamic_list_T* function_call_arguments;

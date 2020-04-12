@@ -3,6 +3,7 @@
 
 
 const char* STATEMENT_WHILE = "while";
+const char* STATEMENT_FOR = "for";
 const char* STATEMENT_IF = "if";
 const char* STATEMENT_ELSE = "else";
 const char* STATEMENT_RETURN = "return";
@@ -113,6 +114,9 @@ AST_T* hermes_parser_parse_statement(hermes_parser_T* hermes_parser, hermes_scop
 
             if (strcmp(token_value, STATEMENT_WHILE) == 0)
                 return hermes_parser_parse_while(hermes_parser, scope);
+
+            if (strcmp(token_value, STATEMENT_FOR) == 0)
+                return hermes_parser_parse_for(hermes_parser, scope);
 
             if (strcmp(token_value, STATEMENT_IF) == 0)
                 return hermes_parser_parse_if(hermes_parser, scope);
@@ -853,6 +857,51 @@ AST_T* hermes_parser_parse_while(hermes_parser_T* hermes_parser, hermes_scope_T*
     ast_while->scope = (struct hermes_scope_T*) scope;
 
     return ast_while;
+}
+
+AST_T* hermes_parser_parse_for(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
+{
+    AST_T* ast_for = init_ast(AST_FOR);
+
+    hermes_parser_eat(hermes_parser, TOKEN_ID); // for
+    hermes_parser_eat(hermes_parser, TOKEN_LPAREN);
+
+    // init statement
+    ast_for->for_init_statement = hermes_parser_parse_statement(hermes_parser, scope);
+    hermes_parser_eat(hermes_parser, TOKEN_SEMI);
+
+    // test expression
+    ast_for->for_test_expr = hermes_parser_parse_expr(hermes_parser, scope);
+    hermes_parser_eat(hermes_parser, TOKEN_SEMI);
+
+    // update statement
+    ast_for->for_update_statement = hermes_parser_parse_statement(hermes_parser, scope);
+
+    hermes_parser_eat(hermes_parser, TOKEN_RPAREN);
+    
+    if (hermes_parser->current_token->type == TOKEN_LBRACE)
+    {
+        hermes_parser_eat(hermes_parser, TOKEN_LBRACE);
+        ast_for->for_body = hermes_parser_parse_statements(hermes_parser, scope);
+        ast_for->for_body->scope = (struct hermes_scope_T*) scope;
+        hermes_parser_eat(hermes_parser, TOKEN_RBRACE);
+    }
+    else
+    {
+        /**
+         * Parse for loop without braces.
+         */
+
+        AST_T* compound = init_ast_with_line(AST_COMPOUND, hermes_parser->hermes_lexer->line_n);
+        compound->scope = (struct hermes_scope_T*) scope;
+        AST_T* statement = hermes_parser_parse_statement(hermes_parser, scope);
+        hermes_parser_eat(hermes_parser, TOKEN_SEMI);
+        dynamic_list_append(compound->compound_value, statement);
+        ast_for->for_body = compound;
+        ast_for->for_body->scope = (struct hermes_scope_T*) scope;
+    }
+
+    return ast_for;
 }
 
 // functions

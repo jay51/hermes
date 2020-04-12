@@ -251,6 +251,8 @@ somefunction(void @(){ print("Hello from anonymous function"); });
 * iterate
 * break
 * continue
+* while
+* for
 
 ### new example
 ```C
@@ -287,6 +289,24 @@ list y = ["john", "sarah", "hannah"];
 
 iterate x with char_iterator;
 iterate y with list_iterator;
+```
+
+### while example
+```C
+int x = 0;
+while (x < 10)
+{
+    print(x);
+    x += 1;
+}
+```
+
+### for example
+```C
+for (int i = 0; i < 10; i+=1)
+{
+    print(i);
+}
 ```
 
 ## Available locals & globals / constants
@@ -339,9 +359,6 @@ print(x);
 ```
 
 ## Notes
-### For loops
-> For loops does not exist, you can acheive the same thing with while loops and we are trying to keep the language simple.
-
 ### Lists
 > This might not be obvious, but lists can contain any sort of value. Example:
 ```C

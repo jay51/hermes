@@ -70,6 +70,8 @@ AST_T* runtime_visit_ternary(runtime_T* runtime, AST_T* node);
 
 AST_T* runtime_visit_while(runtime_T* runtime, AST_T* node);
 
+AST_T* runtime_visit_for(runtime_T* runtime, AST_T* node);
+
 AST_T* runtime_visit_new(runtime_T* runtime, AST_T* node);
 
 AST_T* runtime_visit_iterate(runtime_T* runtime, AST_T* node);
