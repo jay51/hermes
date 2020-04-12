@@ -1866,6 +1866,18 @@ AST_T* runtime_visit_iterate(runtime_T* runtime, AST_T* node)
         );
     }
 
+    AST_T* index_var = (void*)0;
+
+    if (fdef->function_definition_arguments->size > 1)
+    {
+        index_var = init_ast(AST_VARIABLE_DEFINITION);
+        index_var->variable_value = init_ast(AST_INTEGER);
+        index_var->variable_value->int_value = x;
+        index_var->variable_name = ((AST_T*)fdef->function_definition_arguments->items[1])->variable_name;
+        
+        dynamic_list_append(fdef_body_scope->variable_definitions, index_var);
+    }
+
     if (ast_iterable->type == AST_STRING)
     {
         AST_T* new_variable_def = init_ast(AST_VARIABLE_DEFINITION);
@@ -1878,6 +1890,10 @@ AST_T* runtime_visit_iterate(runtime_T* runtime, AST_T* node)
         for (;x < strlen(ast_iterable->string_value); x++)
         {
             new_variable_def->variable_value->char_value = ast_iterable->string_value[x];
+
+            if (index_var)
+                index_var->variable_value->int_value = x;
+
             runtime_visit(runtime, fdef->function_definition_body);
         }
     }
@@ -1893,6 +1909,10 @@ AST_T* runtime_visit_iterate(runtime_T* runtime, AST_T* node)
         for (;x < ast_iterable->list_children->size; x++)
         {
             new_variable_def->variable_value = runtime_visit(runtime, (AST_T*)ast_iterable->list_children->items[x]);
+
+            if (index_var)
+                index_var->variable_value->int_value = x;
+
             runtime_visit(runtime, fdef->function_definition_body);
         }
     }

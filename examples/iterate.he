@@ -6,5 +6,5 @@ void iterate_items(string item)
 list fruits = ["pear", "banana", "apple"];
 
 iterate fruits with void @(string item) {
-    print(item);    
+    print(item);
 };
