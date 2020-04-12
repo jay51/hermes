@@ -82,6 +82,17 @@ static unsigned int is_data_type_modifier(char* token_value)
     return strcmp(token_value, "long") == 0;
 }
 
+static AST_T* hermes_parser_parse_compound_with_one_statement(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
+{
+    AST_T* compound = init_ast_with_line(AST_COMPOUND, hermes_parser->hermes_lexer->line_n);
+    compound->scope = (struct hermes_scope_T*) scope;
+    AST_T* statement = hermes_parser_parse_statement(hermes_parser, scope);
+    hermes_parser_eat(hermes_parser, TOKEN_SEMI);
+    dynamic_list_append(compound->compound_value, statement);
+
+    return compound;
+}
+
 AST_T* hermes_parser_parse(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     return hermes_parser_parse_statements(hermes_parser, scope);
@@ -732,13 +743,7 @@ AST_T* hermes_parser_parse_if(hermes_parser_T* hermes_parser, hermes_scope_T* sc
     }
     else // accept if-statement without braces. (will only parse one statement)
     {
-        AST_T* compound = init_ast_with_line(AST_COMPOUND, hermes_parser->hermes_lexer->line_n);
-        compound->scope = (struct hermes_scope_T*) scope;
-        AST_T* statement = hermes_parser_parse_statement(hermes_parser, scope);
-        hermes_parser_eat(hermes_parser, TOKEN_SEMI);
-        dynamic_list_append(compound->compound_value, statement);
-
-        ast_if->if_body = compound;
+        ast_if->if_body = hermes_parser_parse_compound_with_one_statement(hermes_parser, scope);
     }
 
     if (strcmp(hermes_parser->current_token->value, STATEMENT_ELSE) == 0)
@@ -861,12 +866,7 @@ AST_T* hermes_parser_parse_while(hermes_parser_T* hermes_parser, hermes_scope_T*
     }
     else
     {
-        AST_T* compound = init_ast_with_line(AST_COMPOUND, hermes_parser->hermes_lexer->line_n);
-        compound->scope = (struct hermes_scope_T*) scope;
-        AST_T* statement = hermes_parser_parse_statement(hermes_parser, scope);
-        hermes_parser_eat(hermes_parser, TOKEN_SEMI);
-        dynamic_list_append(compound->compound_value, statement);
-        ast_while->while_body = compound;
+        ast_while->while_body = hermes_parser_parse_compound_with_one_statement(hermes_parser, scope);
         ast_while->while_body->scope = (struct hermes_scope_T*) scope;
     }
 
@@ -906,12 +906,7 @@ AST_T* hermes_parser_parse_for(hermes_parser_T* hermes_parser, hermes_scope_T* s
          * Parse for loop without braces.
          */
 
-        AST_T* compound = init_ast_with_line(AST_COMPOUND, hermes_parser->hermes_lexer->line_n);
-        compound->scope = (struct hermes_scope_T*) scope;
-        AST_T* statement = hermes_parser_parse_statement(hermes_parser, scope);
-        hermes_parser_eat(hermes_parser, TOKEN_SEMI);
-        dynamic_list_append(compound->compound_value, statement);
-        ast_for->for_body = compound;
+        ast_for->for_body = hermes_parser_parse_compound_with_one_statement(hermes_parser, scope);
         ast_for->for_body->scope = (struct hermes_scope_T*) scope;
     }
 
