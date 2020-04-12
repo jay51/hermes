@@ -851,10 +851,24 @@ AST_T* hermes_parser_parse_while(hermes_parser_T* hermes_parser, hermes_scope_T*
     AST_T* ast_while = init_ast_with_line(AST_WHILE, hermes_parser->hermes_lexer->line_n);
     ast_while->while_expr = hermes_parser_parse_expr(hermes_parser, scope);  // boolean expression
     hermes_parser_eat(hermes_parser, TOKEN_RPAREN);
-    hermes_parser_eat(hermes_parser, TOKEN_LBRACE);
-    ast_while->while_body = hermes_parser_parse_statements(hermes_parser, scope);
-    hermes_parser_eat(hermes_parser, TOKEN_RBRACE);
-    ast_while->scope = (struct hermes_scope_T*) scope;
+
+    if (hermes_parser->current_token->type == TOKEN_LBRACE)
+    {
+        hermes_parser_eat(hermes_parser, TOKEN_LBRACE);
+        ast_while->while_body = hermes_parser_parse_statements(hermes_parser, scope);
+        hermes_parser_eat(hermes_parser, TOKEN_RBRACE);
+        ast_while->scope = (struct hermes_scope_T*) scope;
+    }
+    else
+    {
+        AST_T* compound = init_ast_with_line(AST_COMPOUND, hermes_parser->hermes_lexer->line_n);
+        compound->scope = (struct hermes_scope_T*) scope;
+        AST_T* statement = hermes_parser_parse_statement(hermes_parser, scope);
+        hermes_parser_eat(hermes_parser, TOKEN_SEMI);
+        dynamic_list_append(compound->compound_value, statement);
+        ast_while->while_body = compound;
+        ast_while->while_body->scope = (struct hermes_scope_T*) scope;
+    }
 
     return ast_while;
 }
