@@ -58,4 +58,5 @@ void test_hermes_output(void** state)
     assert_true(strcmp(getstdout("sources/output/scope.he"), "else\n") == 0);
     assert_true(strcmp(getstdout("sources/output/math.he"), "5\n5\n50\n12\n50\n2\n5000\n") == 0);
     assert_true(strcmp(getstdout("sources/output/if_and_and.he"), "hello\n") == 0);
+    assert_true(strcmp(getstdout("sources/output/for.he"), "0\n1\n2\n") == 0);
 }

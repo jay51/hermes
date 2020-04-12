@@ -35,6 +35,12 @@ AST_T* init_ast(int type)
     AST->unop_right = (void*) 0;
     AST->unop_operator = 0;
 
+    /* ==== for ==== */
+    AST->for_init_statement = (void*)0;
+    AST->for_test_expr = (void*) 0;
+    AST->for_update_statement = (void*)0;
+    AST->for_body = (void*)0;
+
     AST->compound_value = AST->type == AST_COMPOUND ? init_dynamic_list(sizeof(struct AST_STRUCT*)) : (void*) 0;
     AST->function_call_arguments = AST->type == AST_FUNCTION_CALL ? init_dynamic_list(sizeof(struct AST_STRUCT*)) : (void*) 0;
     AST->function_definition_arguments = AST->type == AST_FUNCTION_DEFINITION ? init_dynamic_list(sizeof(struct AST_STRUCT*)) : (void*) 0;
@@ -130,6 +136,19 @@ void ast_free(AST_T* ast)
 
     if (ast->unop_right)
         ast_free(ast->unop_right);
+
+    /* ==== for ==== */
+    if (ast->for_init_statement)
+        ast_free(ast->for_init_statement);
+
+    if (ast->for_test_expr)
+        ast_free(ast->for_test_expr);
+
+    if (ast->for_update_statement)
+        ast_free(ast->for_update_statement);
+
+    if (ast->for_body)
+        ast_free(ast->for_body);
 
     //if (ast->function_definition_body)
     //    ast_free(ast->function_definition_body);

@@ -90,6 +90,8 @@ AST_T* hermes_parser_parse_assert(hermes_parser_T* hermes_parser, hermes_scope_T
 
 AST_T* hermes_parser_parse_while(hermes_parser_T* hermes_parser, hermes_scope_T* scope);
 
+AST_T* hermes_parser_parse_for(hermes_parser_T* hermes_parser, hermes_scope_T* scope);
+
 // functions
 
 AST_T* hermes_parser_parse_function_call(hermes_parser_T* hermes_parser, hermes_scope_T* scope, AST_T* expr);
