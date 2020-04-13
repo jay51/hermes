@@ -15,13 +15,7 @@ list fruits = [
     "lemon"
 ];
 
-int i = 0;
-
-while (i < fruits.length)
-{
-    print(fruits[i]);
-    i += 1;
-}
+iterate fruits with void @(string fruit) { print(fruit) };
 ```
 
 ## Linking a C program
