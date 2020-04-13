@@ -389,5 +389,10 @@ list cool_stuff = [
 make && sudo make install
 ```
 
+## Extensions
+* [curl](https://github.com/sebbekarlsson/hermes-curl)
+
+> To use an extension please have a look [here](DLOAD.md)
+
 ## Syntax Highlighting
 * [Vim](https://github.com/sebbekarlsson/hermes-vim)
