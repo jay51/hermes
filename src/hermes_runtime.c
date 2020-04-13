@@ -150,9 +150,7 @@ static AST_T* _runtime_function_call(runtime_T* runtime, AST_T* fcall, AST_T* fd
             );
             
             if (vdef)
-            {
                 new_variable_def->variable_value = vdef->variable_value;
-            }
         }
         
         if (new_variable_def->variable_value == (void*)0)
@@ -445,9 +443,7 @@ AST_T* runtime_visit_variable(runtime_T* runtime, AST_T* node)
             AST_T* function_definition = (AST_T*) local_scope->function_definitions->items[i];
             
             if (strcmp(function_definition->function_name, node->variable_name) == 0)
-            {
                 return function_definition;
-            }
         }
     }
 
@@ -476,9 +472,7 @@ AST_T* runtime_visit_variable(runtime_T* runtime, AST_T* node)
                 AST_T* function_definition = (AST_T*) global_scope->function_definitions->items[i];
                 
                 if (strcmp(function_definition->function_name, node->variable_name) == 0)
-                {
                     return function_definition;
-                }
             }
         }
     }
@@ -502,9 +496,7 @@ AST_T* runtime_visit_variable_definition(runtime_T* runtime, AST_T* node)
         );
 
         if (vardef_global != (void*) 0)
-        {
             _multiple_variable_definitions_error(node->line_n, node->variable_name);
-        }
     }
    
     if (node->scope)
@@ -516,9 +508,7 @@ AST_T* runtime_visit_variable_definition(runtime_T* runtime, AST_T* node)
         );
 
         if (vardef_local != (void*) 0)
-        {
             _multiple_variable_definitions_error(node->line_n, node->variable_name);
-        }
     }
 
     if (node->saved_function_call != (void*) 0)
@@ -542,14 +532,7 @@ AST_T* runtime_visit_variable_definition(runtime_T* runtime, AST_T* node)
 
     dynamic_list_append(get_scope(runtime, node)->variable_definitions, node);
 
-    if (node->variable_value)
-    {
-        return node->variable_value;
-    }
-    else
-    {
-        return node;
-    }
+    return node->variable_value ? node->variable_value : node;
 }
 
 AST_T* runtime_visit_variable_assignment(runtime_T* runtime, AST_T* node)
@@ -750,9 +733,7 @@ AST_T* runtime_function_lookup(runtime_T* runtime, hermes_scope_T* scope, AST_T*
                 );
                 
                 if (vdef)
-                {
                     visited = vdef->variable_value;
-                }
             }
 
             visited = visited != (void*)0 ? visited : runtime_visit(runtime, ast_arg);
@@ -899,9 +880,6 @@ AST_T* runtime_visit_float(runtime_T* runtime, AST_T* node)
 
 AST_T* runtime_visit_object(runtime_T* runtime, AST_T* node)
 {
-    //for (int i = 0; i < node->object_children->size; i++)
-    //    node->object_children->items[i] = runtime_visit(runtime, node->object_children->items[i]);
-
     return node;
 }
 
@@ -912,7 +890,9 @@ AST_T* runtime_visit_enum(runtime_T* runtime, AST_T* node)
 
 AST_T* runtime_visit_list(runtime_T* runtime, AST_T* node)
 {
+    // attach list methods to the visited list to be able to use them later.
     node->function_definitions = runtime->list_methods;
+
     return node;
 }
 
@@ -1125,12 +1105,8 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
     {
         char* access_name = (void*) 0;
 
-        switch (right->type)
-        {
-            case AST_VARIABLE: access_name = right->variable_name; break;
-            //case AST_FUNCTION_CALL: access_name = right->function_call_name; break;
-            default: /* silence */; break;
-        }
+        if (right->type == AST_VARIABLE)
+            access_name = right->variable_name;
 
         if (right->type == AST_BINOP)
             right = runtime_visit(runtime, right);
@@ -1757,13 +1733,10 @@ AST_T* runtime_visit_if(runtime_T* runtime, AST_T* node)
     else
     {
         if (node->if_otherwise)
-        {
             return runtime_visit(runtime, node->if_otherwise);
-        }
 
-        if (node->else_body) {
+        if (node->else_body)
             return runtime_visit(runtime, node->else_body);
-        }
     }
 
     return node;

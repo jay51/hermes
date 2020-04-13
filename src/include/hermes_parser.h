@@ -34,8 +34,6 @@ AST_T* hermes_parser_parse_statements(hermes_parser_T* hermes_parser, hermes_sco
 
 AST_T* hermes_parser_parse_type(hermes_parser_T* hermes_parser, hermes_scope_T* scope);
 
-AST_T* hermes_parser_parse_attribute_access(hermes_parser_T* hermes_parser, hermes_scope_T* scope);
-
 // values
 
 AST_T* hermes_parser_parse_float(hermes_parser_T* hermes_parser, hermes_scope_T* scope);
@@ -45,8 +43,6 @@ AST_T* hermes_parser_parse_string(hermes_parser_T* hermes_parser, hermes_scope_T
 AST_T* hermes_parser_parse_char(hermes_parser_T* hermes_parser, hermes_scope_T* scope);
 
 AST_T* hermes_parser_parse_integer(hermes_parser_T* hermes_parser, hermes_scope_T* scope);
-
-AST_T* hermes_parser_parse_array(hermes_parser_T* hermes_parser, hermes_scope_T* scope);
 
 AST_T* hermes_parser_parse_boolean(hermes_parser_T* hermes_parser, hermes_scope_T* scope);
 
