@@ -17,6 +17,9 @@ const char* VALUE_FALSE = "false";
 const char* VALUE_TRUE = "true";
 const char* VALUE_NULL = "NULL";
 
+/**
+ * Initializes the hermes parser.
+ */
 hermes_parser_T* init_hermes_parser(hermes_lexer_T* hermes_lexer)
 {
     hermes_parser_T* hermes_parser = calloc(1, sizeof(struct HERMES_PARSER_STRUCT));
@@ -30,18 +33,27 @@ hermes_parser_T* init_hermes_parser(hermes_lexer_T* hermes_lexer)
 
 // etc
 
+/**
+ * Throws a type error and exit(1).
+ */
 void hermes_parser_type_error(hermes_parser_T* hermes_parser)
 {
     printf("[Line %d] Invalid type for assigned value\n", hermes_parser->hermes_lexer->line_n);
     exit(1);
 }
 
+/**
+ * Throws a syntax error and exit(1).
+ */
 void hermes_parser_syntax_error(hermes_parser_T* hermes_parser)
 {
     printf("[Line %d] Syntax error\n", hermes_parser->hermes_lexer->line_n);
     exit(1);
 }
 
+/**
+ * Throws a unexpected token error and exit(1)
+ */
 void hermes_parser_unexpected_token_error(hermes_parser_T* hermes_parser, int token_type)
 {
     printf(
@@ -53,6 +65,9 @@ void hermes_parser_unexpected_token_error(hermes_parser_T* hermes_parser, int to
     exit(1);
 }
 
+/**
+ * Sets the parent of an AST.
+ */
 static AST_T* as_object_child(AST_T* ast, AST_T* object)
 {
     ast->is_object_child = 1;
@@ -61,6 +76,9 @@ static AST_T* as_object_child(AST_T* ast, AST_T* object)
     return ast;
 }
 
+/**
+ * Checks if a string is a data_type
+ */
 static unsigned int is_data_type(char* token_value)
 {
     return (
@@ -77,11 +95,17 @@ static unsigned int is_data_type(char* token_value)
     );
 }
 
+/**
+ * Checks if a string is a data_type_modifier
+ */
 static unsigned int is_data_type_modifier(char* token_value)
 {
     return strcmp(token_value, "long") == 0;
 }
 
+/**
+ * Parses a compound with only one statement as a child.
+ */
 static AST_T* hermes_parser_parse_compound_with_one_statement(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     AST_T* compound = init_ast_with_line(AST_COMPOUND, hermes_parser->hermes_lexer->line_n);
@@ -93,11 +117,18 @@ static AST_T* hermes_parser_parse_compound_with_one_statement(hermes_parser_T* h
     return compound;
 }
 
+/**
+ * Main entry point of the parser.
+ */
 AST_T* hermes_parser_parse(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     return hermes_parser_parse_statements(hermes_parser, scope);
 }
 
+/**
+ * Consumes a token and moves to the next one if the current token
+ * is the same as the expected one.
+ */
 AST_T* hermes_parser_eat(hermes_parser_T* hermes_parser, int token_type)
 {
     if (hermes_parser->current_token->type != token_type)
@@ -116,6 +147,9 @@ AST_T* hermes_parser_eat(hermes_parser_T* hermes_parser, int token_type)
     return (void*)0;
 }
 
+/**
+ * Parses a single statement.
+ */
 AST_T* hermes_parser_parse_statement(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     switch (hermes_parser->current_token->type)
@@ -198,6 +232,9 @@ AST_T* hermes_parser_parse_statement(hermes_parser_T* hermes_parser, hermes_scop
     return init_ast_with_line(AST_NOOP, hermes_parser->hermes_lexer->line_n);
 }
 
+/**
+ * Parses a compound with a list of statements.
+ */
 AST_T* hermes_parser_parse_statements(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     AST_T* compound = init_ast_with_line(AST_COMPOUND, hermes_parser->hermes_lexer->line_n);
@@ -220,6 +257,9 @@ AST_T* hermes_parser_parse_statements(hermes_parser_T* hermes_parser, hermes_sco
     return compound;
 }
 
+/**
+ * Parses a data type with modifiers.
+ */
 AST_T* hermes_parser_parse_type(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     AST_T* ast_type = init_ast_with_line(AST_TYPE, hermes_parser->hermes_lexer->line_n);
@@ -287,13 +327,12 @@ AST_T* hermes_parser_parse_type(hermes_parser_T* hermes_parser, hermes_scope_T* 
     return ast_type;
 }
 
-AST_T* hermes_parser_parse_attribute_access(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
-{
-    return init_ast_with_line(AST_NOOP, hermes_parser->hermes_lexer->line_n);
-}
-
 // values
 
+/**
+ * Parses a float value.
+ * Simply consumes the current token and converts it to a float.
+ */
 AST_T* hermes_parser_parse_float(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     AST_T* ast_float = init_ast_with_line(AST_FLOAT, hermes_parser->hermes_lexer->line_n);
@@ -305,6 +344,10 @@ AST_T* hermes_parser_parse_float(hermes_parser_T* hermes_parser, hermes_scope_T*
     return ast_float;
 }
 
+/**
+ * Parses a string value.
+ * Consumes the current token and puts the string value on a AST.
+ */
 AST_T* hermes_parser_parse_string(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     AST_T* ast_string = init_ast_with_line(AST_STRING, hermes_parser->hermes_lexer->line_n);
@@ -317,6 +360,10 @@ AST_T* hermes_parser_parse_string(hermes_parser_T* hermes_parser, hermes_scope_T
     return ast_string;
 }
 
+/**
+ * Parses a char value.
+ * Uses the current token to extract the char.
+ */
 AST_T* hermes_parser_parse_char(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     AST_T* ast_string = init_ast_with_line(AST_CHAR, hermes_parser->hermes_lexer->line_n);
@@ -328,6 +375,11 @@ AST_T* hermes_parser_parse_char(hermes_parser_T* hermes_parser, hermes_scope_T* 
     return ast_string;
 }
 
+/**
+ * Parses an integer within the context of the current data_type
+ * (if there is any).
+ * Otherwise just simply parses an integer.
+ */
 AST_T* hermes_parser_parse_integer(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     AST_T* ast_integer = init_ast_with_line(AST_INTEGER, hermes_parser->hermes_lexer->line_n);
@@ -353,11 +405,9 @@ AST_T* hermes_parser_parse_integer(hermes_parser_T* hermes_parser, hermes_scope_
     return ast_integer;
 }
 
-AST_T* hermes_parser_parse_array(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
-{
-    return init_ast_with_line(AST_NOOP, hermes_parser->hermes_lexer->line_n);
-}
-
+/**
+ * Parses a boolean value. (false / true)
+ */
 AST_T* hermes_parser_parse_boolean(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     AST_T* ast_boolean = init_ast_with_line(AST_BOOLEAN, hermes_parser->hermes_lexer->line_n);
@@ -375,6 +425,9 @@ AST_T* hermes_parser_parse_boolean(hermes_parser_T* hermes_parser, hermes_scope_
     return ast_boolean;
 }
 
+/**
+ * Parses a null value.
+ */
 AST_T* hermes_parser_parse_null(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     AST_T* ast_null = init_ast_with_line(AST_NULL, hermes_parser->hermes_lexer->line_n);
@@ -385,6 +438,11 @@ AST_T* hermes_parser_parse_null(hermes_parser_T* hermes_parser, hermes_scope_T* 
     return ast_null;
 }
 
+/**
+ * Parses a variable and also a variable assignment if a TOKEN_EQUALS
+ * is encountered.
+ * Also parses a variable modifier if it encounters it.
+ */
 AST_T* hermes_parser_parse_variable(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     AST_T* ast_variable = init_ast_with_line(AST_VARIABLE, hermes_parser->hermes_lexer->line_n);
@@ -424,6 +482,9 @@ AST_T* hermes_parser_parse_variable(hermes_parser_T* hermes_parser, hermes_scope
     return ast_variable;
 }
 
+/**
+ * Parses an object with its children.
+ */
 AST_T* hermes_parser_parse_object(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     AST_T* ast_object = init_ast_with_line(AST_OBJECT, hermes_parser->hermes_lexer->line_n);
@@ -460,6 +521,9 @@ AST_T* hermes_parser_parse_object(hermes_parser_T* hermes_parser, hermes_scope_T
     return ast_object;
 }
 
+/**
+ * Parses an enum with variables as children.
+ */
 AST_T* hermes_parser_parse_enum(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     AST_T* ast_enum = init_ast_with_line(AST_ENUM, hermes_parser->hermes_lexer->line_n);
@@ -498,6 +562,9 @@ AST_T* hermes_parser_parse_enum(hermes_parser_T* hermes_parser, hermes_scope_T* 
     return ast_enum;
 }
 
+/**
+ * Parses a list with its chilren.
+ */
 AST_T* hermes_parser_parse_list(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     hermes_parser_eat(hermes_parser, TOKEN_LBRACKET);
@@ -524,8 +591,14 @@ AST_T* hermes_parser_parse_list(hermes_parser_T* hermes_parser, hermes_scope_T* 
 
 // math
 
+/**
+ * Parses a factor.
+ */
 AST_T* hermes_parser_parse_factor(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
+    /**
+     * First we're checking for unary operations.
+     */
     while (
         hermes_parser->current_token->type == TOKEN_PLUS ||
         hermes_parser->current_token->type == TOKEN_MINUS
@@ -556,13 +629,11 @@ AST_T* hermes_parser_parse_factor(hermes_parser_T* hermes_parser, hermes_scope_T
     {
         hermes_parser_eat(hermes_parser, TOKEN_ID);
 
-        AST_T* a = (void*) 0;
-
-        switch (hermes_parser->current_token->type)
-        {
-            //case TOKEN_LPAREN: a = hermes_parser_parse_function_call(hermes_parser, scope); break;
-            default: a = hermes_parser_parse_variable(hermes_parser, scope); break;
-        }
+        /**
+         * Since no other evaluations were true, we are assuming it's
+         * a variable.
+         */
+        AST_T* a = hermes_parser_parse_variable(hermes_parser, scope);
 
         if (hermes_parser->current_token->type == TOKEN_DOT)
         {
@@ -592,14 +663,18 @@ AST_T* hermes_parser_parse_factor(hermes_parser_T* hermes_parser, hermes_scope_T
             return a;
     }
 
-   if (hermes_parser->current_token->type == TOKEN_LPAREN)
-   {
-       hermes_parser_eat(hermes_parser, TOKEN_LPAREN);
-       AST_T* ast_expr = hermes_parser_parse_expr(hermes_parser, scope);
-       hermes_parser_eat(hermes_parser, TOKEN_RPAREN);
+    /**
+     * This is to be able to do things like:
+     *  1 * (5 + 5) * (5 * 1) + 3
+     */
+    if (hermes_parser->current_token->type == TOKEN_LPAREN)
+    {
+        hermes_parser_eat(hermes_parser, TOKEN_LPAREN);
+        AST_T* ast_expr = hermes_parser_parse_expr(hermes_parser, scope);
+        hermes_parser_eat(hermes_parser, TOKEN_RPAREN);
 
-       return ast_expr;
-   } 
+        return ast_expr;
+    } 
 
     switch (hermes_parser->current_token->type)
     {
@@ -614,6 +689,9 @@ AST_T* hermes_parser_parse_factor(hermes_parser_T* hermes_parser, hermes_scope_T
     }
 }
 
+/**
+ * Parses a term.
+ */
 AST_T* hermes_parser_parse_term(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     char* token_value = hermes_parser->current_token->value;
@@ -651,6 +729,9 @@ AST_T* hermes_parser_parse_term(hermes_parser_T* hermes_parser, hermes_scope_T* 
     return node;
 }
 
+/**
+ * Parses an expression
+ */
 AST_T* hermes_parser_parse_expr(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     AST_T* node = hermes_parser_parse_term(hermes_parser, scope);
@@ -697,6 +778,9 @@ AST_T* hermes_parser_parse_expr(hermes_parser_T* hermes_parser, hermes_scope_T* 
 
 // statements
 
+/**
+ * Parses a break statement.
+ */
 AST_T* hermes_parser_parse_break(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     hermes_parser_eat(hermes_parser, TOKEN_ID);  // break token
@@ -704,6 +788,9 @@ AST_T* hermes_parser_parse_break(hermes_parser_T* hermes_parser, hermes_scope_T*
     return init_ast_with_line(AST_BREAK, hermes_parser->hermes_lexer->line_n);
 }
 
+/**
+ * Parses a continue statement.
+ */
 AST_T* hermes_parser_parse_continue(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     hermes_parser_eat(hermes_parser, TOKEN_ID);  // continue token
@@ -711,6 +798,9 @@ AST_T* hermes_parser_parse_continue(hermes_parser_T* hermes_parser, hermes_scope
     return init_ast_with_line(AST_CONTINUE, hermes_parser->hermes_lexer->line_n);
 }
 
+/**
+ * Parses a return statement.
+ */
 AST_T* hermes_parser_parse_return(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     hermes_parser_eat(hermes_parser, TOKEN_ID);
@@ -723,6 +813,9 @@ AST_T* hermes_parser_parse_return(hermes_parser_T* hermes_parser, hermes_scope_T
     return ast_return;
 }
 
+/**
+ * Parses an if statement. With or without braces.
+ */
 AST_T* hermes_parser_parse_if(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     AST_T* ast_if = init_ast_with_line(AST_IF, hermes_parser->hermes_lexer->line_n);
@@ -782,6 +875,10 @@ AST_T* hermes_parser_parse_if(hermes_parser_T* hermes_parser, hermes_scope_T* sc
     return ast_if;
 }
 
+/**
+ * Parses a ternary. Example:
+ *  x > 2 ? 5 : 3
+ */
 AST_T* hermes_parser_parse_ternary(hermes_parser_T* hermes_parser, hermes_scope_T* scope, AST_T* expr)
 {
     AST_T* ternary = init_ast_with_line(AST_TERNARY, hermes_parser->hermes_lexer->line_n);
@@ -798,6 +895,9 @@ AST_T* hermes_parser_parse_ternary(hermes_parser_T* hermes_parser, hermes_scope_
     return ternary;
 }
 
+/**
+ * Parses a `new` statement.
+ */
 AST_T* hermes_parser_parse_new(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     hermes_parser_eat(hermes_parser, TOKEN_ID);
@@ -807,7 +907,10 @@ AST_T* hermes_parser_parse_new(hermes_parser_T* hermes_parser, hermes_scope_T* s
     return ast_new;
 }
 
-
+/**
+ * Parses an iterate statement with a function definition or a variable
+ * as iterator.
+ */
 AST_T* hermes_parser_parse_iterate(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     hermes_parser_eat(hermes_parser, TOKEN_ID); // iterate
@@ -838,6 +941,9 @@ AST_T* hermes_parser_parse_iterate(hermes_parser_T* hermes_parser, hermes_scope_
     return ast_iterate;
 }
 
+/**
+ * Parses an assert statement with its right-hand expression.
+ */
 AST_T* hermes_parser_parse_assert(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     hermes_parser_eat(hermes_parser, TOKEN_ID);
@@ -849,6 +955,9 @@ AST_T* hermes_parser_parse_assert(hermes_parser_T* hermes_parser, hermes_scope_T
 
 // loops
 
+/**
+ * Parses a while loop statement with its body and boolean expression.
+ */
 AST_T* hermes_parser_parse_while(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     hermes_parser_eat(hermes_parser, TOKEN_ID);
@@ -873,6 +982,9 @@ AST_T* hermes_parser_parse_while(hermes_parser_T* hermes_parser, hermes_scope_T*
     return ast_while;
 }
 
+/**
+ * Parses a for loop.
+ */
 AST_T* hermes_parser_parse_for(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     AST_T* ast_for = init_ast(AST_FOR);
@@ -915,6 +1027,9 @@ AST_T* hermes_parser_parse_for(hermes_parser_T* hermes_parser, hermes_scope_T* s
 
 // functions
 
+/**
+ * Parses a function call
+ */
 AST_T* hermes_parser_parse_function_call(hermes_parser_T* hermes_parser, hermes_scope_T* scope, AST_T* expr)
 {
     AST_T* ast_function_call = init_ast_with_line(AST_FUNCTION_CALL, hermes_parser->hermes_lexer->line_n);
