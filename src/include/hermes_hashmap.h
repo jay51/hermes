@@ -52,12 +52,21 @@ typedef struct {
     map_next_(&(m)->base, iter)
 
 
+#define map_size(m)\
+    map_size_(&(m)->base)
+
+#define map_isempty(m)\
+    map_isempty_(&(m)->base)
+
+
 void map_deinit_(map_base_t *m);
 void *map_get_(map_base_t *m, const char *key);
 int map_set_(map_base_t *m, const char *key, void *value, int vsize);
 void map_remove_(map_base_t *m, const char *key);
 map_iter_t map_iter_(void);
 const char *map_next_(map_base_t *m, map_iter_t *iter);
+unsigned map_size_(map_base_t *m);
+unsigned map_isempty_(map_base_t *m);
 
 
 typedef map_t(void*) map_void_t;
