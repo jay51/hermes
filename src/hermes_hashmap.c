@@ -176,3 +176,12 @@ const char *map_next_(map_base_t *m, map_iter_t *iter) {
     }
     return (char *)(iter->node + 1);
 }
+
+
+unsigned map_size_(map_base_t *m) {
+    return m->nnodes;
+}
+
+unsigned map_isempty_(map_base_t *m) {
+    return m->nnodes == 0;
+}
