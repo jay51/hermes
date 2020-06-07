@@ -60,4 +60,5 @@ void test_hermes_output(void** state)
     assert_true(strcmp(getstdout("sources/output/if_and_and.he"), "hello\n") == 0);
     assert_true(strcmp(getstdout("sources/output/for.he"), "0\n1\n2\n") == 0);
     assert_true(strcmp(getstdout("sources/output/iterate_index.he"), "banana\n0\napple\n1\npear\n2\n") == 0);
+    assert_true(strcmp(getstdout("sources/output/strrev.he"), "eoD nhoJ\n") == 0);
 }

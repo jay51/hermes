@@ -265,6 +265,11 @@ runtime_T* init_runtime()
     VISIT_FUNCTION_DEFINITION->fptr = hermes_builtin_function_visit;
     dynamic_list_append(runtime->scope->function_definitions, VISIT_FUNCTION_DEFINITION);
 
+    AST_T* STRREV_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);
+    STRREV_FUNCTION_DEFINITION->function_name = create_str("strrev");
+    STRREV_FUNCTION_DEFINITION->fptr = hermes_builtin_function_strrev;
+    dynamic_list_append(runtime->scope->function_definitions, STRREV_FUNCTION_DEFINITION);
+
     // LIST FUNCTIONS
 
     AST_T* LIST_ADD_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);

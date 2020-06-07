@@ -40,5 +40,7 @@ AST_T* hermes_builtin_function_free(runtime_T* runtime, AST_T* self, dynamic_lis
 
 AST_T* hermes_builtin_function_visit(runtime_T* runtime, AST_T* self, dynamic_list_T* args);
 
+AST_T* hermes_builtin_function_strrev(runtime_T* runtime, AST_T* self, dynamic_list_T* args);
+
 AST_T* INITIALIZED_NOOP;
 #endif

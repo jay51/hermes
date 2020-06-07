@@ -60,3 +60,20 @@ char* hermes_get_stdin(const char* printstr)
 
     return str;
 }
+
+char *hermes_strrev(char *intstr)
+{
+      char *p1, *p2;
+
+      if (!intstr || ! *intstr)
+          return intstr;
+
+      for (p1 = intstr, p2 = intstr + strlen(intstr) - 1; p2 > p1; ++p1, --p2)
+      {
+          *p1 ^= *p2;
+          *p2 ^= *p1;
+          *p1 ^= *p2;
+      }
+
+      return intstr;
+}
