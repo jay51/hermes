@@ -539,3 +539,18 @@ AST_T* hermes_builtin_function_visit(runtime_T* runtime, AST_T* self, dynamic_li
 
     return arg;
 }
+
+AST_T* hermes_builtin_function_strrev(runtime_T* runtime, AST_T* self, dynamic_list_T* args)
+{
+    runtime_expect_args(args, 1, (int[]) {AST_STRING});
+
+    char* input_string = ((AST_T*)args->items[0])->string_value;
+
+    char* new_str = hermes_strrev(input_string);
+
+    AST_T* ast_string = init_ast(AST_STRING);
+    ast_string->string_value = calloc(strlen(new_str) + 1, sizeof(char));
+    strcpy(ast_string->string_value, new_str);
+
+    return ast_string;
+}

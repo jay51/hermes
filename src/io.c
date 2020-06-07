@@ -9,7 +9,7 @@
  *
  * @return char*
  */
-char* hermes_read_file(char* filename)
+char* hermes_read_file(const char* filename)
 {
     char * buffer = 0;
     long length;
