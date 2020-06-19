@@ -10,6 +10,10 @@ typedef struct RUNTIME_STRUCT
     char* stdout_buffer;
 } runtime_T;
 
+AST_T* runtime_register_global_function(runtime_T* runtime, char* fname, struct AST_STRUCT* (*fptr)(struct RUNTIME_STRUCT* runtime, struct AST_STRUCT* self, dynamic_list_T* args));
+
+AST_T* runtime_register_global_variable(runtime_T* runtime, char* vname, char* vval);
+
 runtime_T* init_runtime();
 
 AST_T* runtime_visit(runtime_T* runtime, AST_T* node);
