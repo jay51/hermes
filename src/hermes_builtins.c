@@ -8,31 +8,6 @@
 #include <string.h>
 #include <time.h>
 
-static AST_T* list_add_fptr(runtime_T* runtime, AST_T* self, dynamic_list_T* args)
-{
-    for (int i = 0; i < args->size; i++)
-        dynamic_list_append(self->list_children, args->items[i]);
-
-    return self;
-}
-
-static AST_T* list_remove_fptr(runtime_T* runtime, AST_T* self, dynamic_list_T* args)
-{
-    runtime_expect_args(args, 1, (int[]){ AST_INTEGER });
-
-    AST_T* ast_int = (AST_T*) args->items[0];
-
-    if (ast_int->int_value > self->list_children->size)
-    {
-        printf("Index out of range\n");
-        exit(1);
-    }
-
-    dynamic_list_remove(self->list_children, self->list_children->items[ast_int->int_value], (void*)0);
-
-    return self;
-}
-
 void init_builtins(runtime_T* runtime)
 {
   runtime_register_global_variable(runtime, "ver", "1.0.1");
@@ -57,10 +32,6 @@ void init_builtins(runtime_T* runtime)
   runtime_register_global_function(runtime, "free", hermes_builtin_function_free);
   runtime_register_global_function(runtime, "visit", hermes_builtin_function_visit);
   runtime_register_global_function(runtime, "strrev", hermes_builtin_function_strrev);
-
-  // LIST FUNCTIONS
-  runtime_register_global_function(runtime, "add", list_add_fptr);
-  runtime_register_global_function(runtime, "remove", list_remove_fptr);
 }
 
 /**
