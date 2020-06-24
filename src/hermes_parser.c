@@ -707,11 +707,7 @@ AST_T* hermes_parser_parse_term(hermes_parser_T* hermes_parser, hermes_scope_T* 
 
     while (
         hermes_parser->current_token->type == TOKEN_DIV ||        
-        hermes_parser->current_token->type == TOKEN_STAR ||
-        hermes_parser->current_token->type == TOKEN_LESS_THAN ||
-        hermes_parser->current_token->type == TOKEN_LARGER_THAN ||
-        hermes_parser->current_token->type == TOKEN_EQUALS_EQUALS ||
-        hermes_parser->current_token->type == TOKEN_NOT_EQUALS
+        hermes_parser->current_token->type == TOKEN_STAR
     )
     {
         token_T* binop_operator = token_copy(hermes_parser->current_token);
@@ -732,14 +728,16 @@ AST_T* hermes_parser_parse_term(hermes_parser_T* hermes_parser, hermes_scope_T* 
 /**
  * Parses an expression
  */
-AST_T* hermes_parser_parse_expr(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
+AST_T* hermes_parser_parse_expression(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
 {
     AST_T* node = hermes_parser_parse_term(hermes_parser, scope);
     AST_T* ast_binop = (void*) 0;
 
     while (
         hermes_parser->current_token->type == TOKEN_PLUS ||
-        hermes_parser->current_token->type == TOKEN_MINUS
+        hermes_parser->current_token->type == TOKEN_MINUS ||
+        hermes_parser->current_token->type == TOKEN_EQUALS_EQUALS ||
+        hermes_parser->current_token->type == TOKEN_NOT_EQUALS
     )
     {
         token_T* binop_operator = token_copy(hermes_parser->current_token);
@@ -755,6 +753,36 @@ AST_T* hermes_parser_parse_expr(hermes_parser_T* hermes_parser, hermes_scope_T* 
         node = ast_binop;
     }
 
+    while (
+        hermes_parser->current_token->type == TOKEN_LESS_THAN ||
+        hermes_parser->current_token->type == TOKEN_LARGER_THAN
+    )
+    {
+        token_T* binop_operator = token_copy(hermes_parser->current_token);
+        hermes_parser_eat(hermes_parser, binop_operator->type);
+
+        ast_binop = init_ast_with_line(AST_BINOP, hermes_parser->hermes_lexer->line_n);
+        ast_binop->scope = (struct hermes_scope_T*) scope;
+
+        ast_binop->binop_left = node;
+        ast_binop->binop_operator = binop_operator;
+        ast_binop->binop_right = hermes_parser_parse_expression(hermes_parser, scope);
+
+        node = ast_binop;
+    }
+
+
+
+    return node;
+}
+
+
+AST_T* hermes_parser_parse_expr(hermes_parser_T* hermes_parser, hermes_scope_T* scope)
+{
+
+    AST_T* node = hermes_parser_parse_expression(hermes_parser, scope);
+    AST_T* ast_binop = (void*) 0;
+
     while (hermes_parser->current_token->type == TOKEN_AND)
     {
         token_T* binop_operator = token_copy(hermes_parser->current_token);
@@ -765,13 +793,14 @@ AST_T* hermes_parser_parse_expr(hermes_parser_T* hermes_parser, hermes_scope_T* 
 
         ast_binop->binop_left = node;
         ast_binop->binop_operator = binop_operator;
-        ast_binop->binop_right = hermes_parser_parse_term(hermes_parser, scope);
+        ast_binop->binop_right = hermes_parser_parse_expression(hermes_parser, scope);
 
         node = ast_binop;
     }
 
-    if (hermes_parser->current_token->type == TOKEN_QUESTION)
+    if (hermes_parser->current_token->type == TOKEN_QUESTION){
         return hermes_parser_parse_ternary(hermes_parser, scope, node);
+    }
 
     return node;
 }
