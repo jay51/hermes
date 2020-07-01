@@ -64,7 +64,7 @@ static void collect_and_sweep_garbage(runtime_T* runtime, dynamic_list_T* old_de
     {
         AST_T* new_def = scope->variable_definitions->items[i];
         unsigned int exists = 0;
-        
+
         for (int j = 0; j < old_def_list->size; j++)
         {
             AST_T* old_def = old_def_list->items[j];
@@ -73,7 +73,7 @@ static void collect_and_sweep_garbage(runtime_T* runtime, dynamic_list_T* old_de
             if (old_def == new_def)
             {
                 exists = 1;
-            } 
+            }
         }
 
         if (!exists)
@@ -148,11 +148,11 @@ static AST_T* _runtime_function_call(runtime_T* runtime, AST_T* fcall, AST_T* fd
                 (hermes_scope_T*) get_scope(runtime, ast_arg),
                 ast_arg->variable_name
             );
-            
+
             if (vdef)
                 new_variable_def->variable_value = vdef->variable_value;
         }
-        
+
         if (new_variable_def->variable_value == (void*)0)
             new_variable_def->variable_value = runtime_visit(runtime, ast_arg);
 
@@ -164,6 +164,26 @@ static AST_T* _runtime_function_call(runtime_T* runtime, AST_T* fcall, AST_T* fd
     return runtime_visit(runtime, fdef->function_definition_body);
 }
 
+AST_T* runtime_register_global_function(runtime_T* runtime, char* fname, struct AST_STRUCT* (*fptr)(struct RUNTIME_STRUCT* runtime, struct AST_STRUCT* self, dynamic_list_T* args))
+{
+  AST_T* fdef = init_ast(AST_FUNCTION_DEFINITION);
+  fdef->function_name = create_str(fname);
+  fdef->fptr = fptr;
+  dynamic_list_append(runtime->scope->function_definitions, fdef);
+  return fdef;
+}
+
+AST_T* runtime_register_global_variable(runtime_T* runtime, char* vname, char* vval)
+{
+  AST_T* vdef = init_ast(AST_VARIABLE_DEFINITION);
+  vdef->variable_name = create_str(vname);
+  vdef->variable_type = init_ast(AST_STRING);
+  vdef->variable_value = init_ast(AST_STRING);
+  vdef->variable_value->string_value = create_str(vval);
+  dynamic_list_append(runtime->scope->variable_definitions, vdef);
+  return vdef;
+}
+
 runtime_T* init_runtime()
 {
     runtime_T* runtime = calloc(1, sizeof(struct RUNTIME_STRUCT));
@@ -173,104 +193,7 @@ runtime_T* init_runtime()
 
     INITIALIZED_NOOP = init_ast(AST_NOOP);
 
-    // GLOBAL FUNCTIONS
-    
-    AST_T* INCLUDE_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);
-    INCLUDE_FUNCTION_DEFINITION->function_name = create_str("include");
-    INCLUDE_FUNCTION_DEFINITION->fptr = hermes_builtin_function_include;
-    dynamic_list_append(runtime->scope->function_definitions, INCLUDE_FUNCTION_DEFINITION);
-
-    AST_T* WAD_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);
-    WAD_FUNCTION_DEFINITION->function_name = create_str("wad");
-    WAD_FUNCTION_DEFINITION->fptr = hermes_builtin_function_wad;
-    dynamic_list_append(runtime->scope->function_definitions, WAD_FUNCTION_DEFINITION);
-
-    AST_T* LAD_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);
-    LAD_FUNCTION_DEFINITION->function_name = create_str("lad");
-    LAD_FUNCTION_DEFINITION->fptr = hermes_builtin_function_lad;
-    dynamic_list_append(runtime->scope->function_definitions, LAD_FUNCTION_DEFINITION);
-
-    AST_T* PRINT_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);
-    PRINT_FUNCTION_DEFINITION->function_name = create_str("print");
-    PRINT_FUNCTION_DEFINITION->fptr = hermes_builtin_function_print;
-    dynamic_list_append(runtime->scope->function_definitions, PRINT_FUNCTION_DEFINITION);
-
-    AST_T* STOUDBUFFER_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);
-    STOUDBUFFER_FUNCTION_DEFINITION->function_name = create_str("stdoutbuffer");
-    STOUDBUFFER_FUNCTION_DEFINITION->fptr = hermes_builtin_function_stdoutbuffer;
-    dynamic_list_append(runtime->scope->function_definitions, STOUDBUFFER_FUNCTION_DEFINITION);
-
-    AST_T* PPRINT_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);
-    PPRINT_FUNCTION_DEFINITION->function_name = create_str("aprint");
-    PPRINT_FUNCTION_DEFINITION->fptr = hermes_builtin_function_aprint;
-    dynamic_list_append(runtime->scope->function_definitions, PPRINT_FUNCTION_DEFINITION);
-
-    AST_T* FOPEN_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);
-    FOPEN_FUNCTION_DEFINITION->function_name = create_str("fopen");
-    FOPEN_FUNCTION_DEFINITION->fptr = hermes_builtin_function_fopen;
-    dynamic_list_append(runtime->scope->function_definitions, FOPEN_FUNCTION_DEFINITION);
-
-    AST_T* FCLOSE_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);
-    FCLOSE_FUNCTION_DEFINITION->function_name = create_str("fclose");
-    FCLOSE_FUNCTION_DEFINITION->fptr = hermes_builtin_function_fclose;
-    dynamic_list_append(runtime->scope->function_definitions, FCLOSE_FUNCTION_DEFINITION);
-
-    AST_T* FPUTS_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);
-    FPUTS_FUNCTION_DEFINITION->function_name = create_str("fputs");
-    FPUTS_FUNCTION_DEFINITION->fptr = hermes_builtin_function_fputs;
-    dynamic_list_append(runtime->scope->function_definitions, FPUTS_FUNCTION_DEFINITION);
-
-    AST_T* INPUT_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);
-    INPUT_FUNCTION_DEFINITION->function_name = create_str("input");
-    INPUT_FUNCTION_DEFINITION->fptr = hermes_builtin_function_input;
-    dynamic_list_append(runtime->scope->function_definitions, INPUT_FUNCTION_DEFINITION);
-
-    AST_T* CHAR_TO_BIN_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);
-    CHAR_TO_BIN_FUNCTION_DEFINITION->function_name = create_str("char_to_bin");
-    CHAR_TO_BIN_FUNCTION_DEFINITION->fptr = hermes_builtin_function_char_to_bin;
-    dynamic_list_append(runtime->scope->function_definitions, CHAR_TO_BIN_FUNCTION_DEFINITION);
-    
-    AST_T* CHAR_TO_OCT_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);
-    CHAR_TO_OCT_FUNCTION_DEFINITION->function_name = create_str("char_to_oct");
-    CHAR_TO_OCT_FUNCTION_DEFINITION->fptr = hermes_builtin_function_char_to_oct;
-    dynamic_list_append(runtime->scope->function_definitions, CHAR_TO_OCT_FUNCTION_DEFINITION);
-
-    AST_T* CHAR_TO_DEC_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);
-    CHAR_TO_DEC_FUNCTION_DEFINITION->function_name = create_str("char_to_dec");
-    CHAR_TO_DEC_FUNCTION_DEFINITION->fptr = hermes_builtin_function_char_to_dec;
-    dynamic_list_append(runtime->scope->function_definitions, CHAR_TO_DEC_FUNCTION_DEFINITION);
-
-    AST_T* CHAR_TO_HEX_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);
-    CHAR_TO_HEX_FUNCTION_DEFINITION->function_name = create_str("char_to_hex");
-    CHAR_TO_HEX_FUNCTION_DEFINITION->fptr = hermes_builtin_function_char_to_hex;
-    dynamic_list_append(runtime->scope->function_definitions, CHAR_TO_HEX_FUNCTION_DEFINITION);
-
-    AST_T* TIME_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);
-    TIME_FUNCTION_DEFINITION->function_name = create_str("time");
-    TIME_FUNCTION_DEFINITION->fptr = hermes_builtin_function_time;
-    dynamic_list_append(runtime->scope->function_definitions, TIME_FUNCTION_DEFINITION);
-
-    AST_T* DLOAD_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);
-    DLOAD_FUNCTION_DEFINITION->function_name = create_str("dload");
-    DLOAD_FUNCTION_DEFINITION->fptr = hermes_builtin_function_dload;
-    dynamic_list_append(runtime->scope->function_definitions, DLOAD_FUNCTION_DEFINITION);
-
-    AST_T* FREE_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);
-    FREE_FUNCTION_DEFINITION->function_name = create_str("free");
-    FREE_FUNCTION_DEFINITION->fptr = hermes_builtin_function_free;
-    dynamic_list_append(runtime->scope->function_definitions, FREE_FUNCTION_DEFINITION);
-
-    AST_T* VISIT_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);
-    VISIT_FUNCTION_DEFINITION->function_name = create_str("visit");
-    VISIT_FUNCTION_DEFINITION->fptr = hermes_builtin_function_visit;
-    dynamic_list_append(runtime->scope->function_definitions, VISIT_FUNCTION_DEFINITION);
-
-    AST_T* STRREV_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);
-    STRREV_FUNCTION_DEFINITION->function_name = create_str("strrev");
-    STRREV_FUNCTION_DEFINITION->fptr = hermes_builtin_function_strrev;
-    dynamic_list_append(runtime->scope->function_definitions, STRREV_FUNCTION_DEFINITION);
-
-    // LIST FUNCTIONS
+    init_builtins(runtime);
 
     AST_T* LIST_ADD_FUNCTION_DEFINITION = init_ast(AST_FUNCTION_DEFINITION);
     LIST_ADD_FUNCTION_DEFINITION->function_name = create_str("add");
@@ -371,7 +294,7 @@ AST_T* get_variable_definition_by_name(runtime_T* runtime, hermes_scope_T* scope
 AST_T* runtime_visit_variable(runtime_T* runtime, AST_T* node)
 {
     hermes_scope_T* local_scope = (hermes_scope_T*) node->scope;
-    hermes_scope_T* global_scope = runtime->scope; 
+    hermes_scope_T* global_scope = runtime->scope;
 
     if (node->object_children != (void*) 0)
     {
@@ -446,7 +369,7 @@ AST_T* runtime_visit_variable(runtime_T* runtime, AST_T* node)
         for (int i = 0; i < local_scope->function_definitions->size; i++)
         {
             AST_T* function_definition = (AST_T*) local_scope->function_definitions->items[i];
-            
+
             if (strcmp(function_definition->function_name, node->variable_name) == 0)
                 return function_definition;
         }
@@ -475,7 +398,7 @@ AST_T* runtime_visit_variable(runtime_T* runtime, AST_T* node)
             for (int i = 0; i < global_scope->function_definitions->size; i++)
             {
                 AST_T* function_definition = (AST_T*) global_scope->function_definitions->items[i];
-                
+
                 if (strcmp(function_definition->function_name, node->variable_name) == 0)
                     return function_definition;
             }
@@ -503,7 +426,7 @@ AST_T* runtime_visit_variable_definition(runtime_T* runtime, AST_T* node)
         if (vardef_global != (void*) 0)
             _multiple_variable_definitions_error(node->line_n, node->variable_name);
     }
-   
+
     if (node->scope)
     {
         AST_T* vardef_local = get_variable_definition_by_name(
@@ -736,7 +659,7 @@ AST_T* runtime_function_lookup(runtime_T* runtime, hermes_scope_T* scope, AST_T*
                     (hermes_scope_T*) get_scope(runtime, ast_arg),
                     ast_arg->variable_name
                 );
-                
+
                 if (vdef)
                     visited = vdef->variable_value;
             }
@@ -760,7 +683,7 @@ AST_T* runtime_function_lookup(runtime_T* runtime, hermes_scope_T* scope, AST_T*
     else
     if (function_definition->composition_children != (void*)0)
     {
-        
+
         AST_T* final_result = init_ast(AST_NULL);
         int data_type = function_definition->function_definition_type->type_value->type;
 
@@ -837,7 +760,7 @@ AST_T* runtime_visit_function_call(runtime_T* runtime, AST_T* node)
 
     // TODO: put this in the hermes_builtins.c,
     // this cannot be done right now because the function pointers does not
-    // support the `scope` argument.  
+    // support the `scope` argument.
 
     if (node->scope != (void*) 0)
     {
@@ -916,7 +839,7 @@ AST_T* runtime_visit_compound(runtime_T* runtime, AST_T* node)
     hermes_scope_T* scope = get_scope(runtime, node);
 
     dynamic_list_T* old_def_list = init_dynamic_list(sizeof(AST_T*));
-        
+
     for (int i = 0; i < scope->variable_definitions->size; i++)
     {
         AST_T* vardef = scope->variable_definitions->items[i];
@@ -955,8 +878,8 @@ AST_T* runtime_visit_compound(runtime_T* runtime, AST_T* node)
                 return visited;
             }
         }
-    } 
-    
+    }
+
     collect_and_sweep_garbage(runtime, old_def_list, scope);
 
     return node;
@@ -994,7 +917,7 @@ AST_T* runtime_visit_attribute_access(runtime_T* runtime, AST_T* node)
 
                 return int_ast;
             }
-        } 
+        }
     }
     else
     if (left->type == AST_OBJECT)
@@ -1058,13 +981,13 @@ AST_T* runtime_visit_attribute_access(runtime_T* runtime, AST_T* node)
                     }
                 }
             }
-        
+
             if (left->object_children != (void*)0)
             {
                 for (int i = 0; i < left->object_children->size; i++)
                 {
                     AST_T* obj_child = (AST_T*) left->object_children->items[i];
-                    
+
                     if (obj_child->type == AST_FUNCTION_DEFINITION)
                         if (strcmp(obj_child->function_name, function_call_name) == 0)
                             return _runtime_function_call(runtime, node->binop_right, obj_child);
@@ -1074,7 +997,7 @@ AST_T* runtime_visit_attribute_access(runtime_T* runtime, AST_T* node)
     }
 
     node->scope = (struct hermes_scope_T*) get_scope(runtime, left);
-    
+
     AST_T* new = runtime_visit(runtime, node->binop_right);
 
     return runtime_visit(runtime, new);
@@ -1115,7 +1038,7 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
 
         if (right->type == AST_BINOP)
             right = runtime_visit(runtime, right);
-        
+
         if (left->type == AST_OBJECT)
         {
             for (int i = 0; i < left->object_children->size; i++)
@@ -1198,7 +1121,7 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
             if (left->type == AST_INTEGER && right->type == AST_FLOAT)
             {
                 return_value = init_ast(AST_FLOAT);
-                
+
                 if (data_type_has_modifier(left->type_value, DATA_TYPE_MODIFIER_LONG))
                     return_value->float_value = left->long_int_value + right->float_value;
                 else
@@ -1209,7 +1132,7 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
             if (left->type == AST_FLOAT && right->type == AST_INTEGER)
             {
                 return_value = init_ast(AST_FLOAT);
-                
+
                 if (data_type_has_modifier(right->type_value, DATA_TYPE_MODIFIER_LONG))
                     return_value->float_value = left->float_value + right->long_int_value;
                 else
@@ -1237,7 +1160,7 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
                     int_str_template,
                     data_type_has_modifier(right->type_value, DATA_TYPE_MODIFIER_LONG) ? right->long_int_value : right->int_value
                 );
-                
+
                 char* new_str = calloc(strlen(left->string_value) + strlen(int_str) + 1, sizeof(char));
                 strcat(new_str, left->string_value);
                 strcat(new_str, int_str);
@@ -1272,7 +1195,7 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
             if (left->type == AST_INTEGER && right->type == AST_INTEGER)
             {
                 return_value = init_ast(AST_INTEGER);
-                
+
                 return_value->int_value =
                     (data_type_has_modifier(left->type_value, DATA_TYPE_MODIFIER_LONG) ? left->long_int_value : left->int_value) -
                     (data_type_has_modifier(right->type_value, DATA_TYPE_MODIFIER_LONG) ? right->long_int_value : right->int_value);
@@ -1300,7 +1223,7 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
             if (left->type == AST_FLOAT && right->type == AST_INTEGER)
             {
                 return_value = init_ast(AST_FLOAT);
-                
+
                 if (data_type_has_modifier(right->type_value, DATA_TYPE_MODIFIER_LONG))
                     return_value->float_value = left->float_value - right->long_int_value;
                 else
@@ -1313,7 +1236,7 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
             if (left->type == AST_INTEGER && right->type == AST_INTEGER)
             {
                 return_value = init_ast(AST_INTEGER);
-                
+
                 return_value->int_value =
                     (data_type_has_modifier(left->type_value, DATA_TYPE_MODIFIER_LONG) ? left->long_int_value : left->int_value) /
                     (data_type_has_modifier(right->type_value, DATA_TYPE_MODIFIER_LONG) ? right->long_int_value : right->int_value) ;
@@ -1330,7 +1253,7 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
             if (left->type == AST_INTEGER && right->type == AST_FLOAT)
             {
                 return_value = init_ast(AST_FLOAT);
-                
+
                 if (data_type_has_modifier(left->type_value, DATA_TYPE_MODIFIER_LONG))
                     return_value->float_value = left->long_int_value / right->float_value;
                 else
@@ -1341,7 +1264,7 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
             if (left->type == AST_FLOAT && right->type == AST_INTEGER)
             {
                 return_value = init_ast(AST_FLOAT);
-                
+
                 if (data_type_has_modifier(right->type_value, DATA_TYPE_MODIFIER_LONG))
                     return_value->float_value = left->float_value / right->long_int_value;
                 else
@@ -1410,7 +1333,7 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
             if (left->type == AST_INTEGER && right->type == AST_FLOAT)
             {
                 return_value = init_ast(AST_BOOLEAN);
-                
+
                 if (data_type_has_modifier(left->type_value, DATA_TYPE_MODIFIER_LONG))
                     return_value->boolean_value = left->long_int_value && right->float_value;
                 else
@@ -1453,7 +1376,7 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
             if (left->type == AST_INTEGER && right->type == AST_FLOAT)
             {
                 return_value = init_ast(AST_BOOLEAN);
-                
+
                 if (data_type_has_modifier(left->type_value, DATA_TYPE_MODIFIER_LONG))
                     return_value->boolean_value = left->long_int_value < right->float_value;
                 else
@@ -1493,7 +1416,7 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
             if (left->type == AST_INTEGER && right->type == AST_FLOAT)
             {
                 return_value = init_ast(AST_BOOLEAN);
-                
+
                 if (data_type_has_modifier(left->type_value, DATA_TYPE_MODIFIER_LONG))
                     return_value->boolean_value = left->long_int_value > right->float_value;
                 else
@@ -1527,7 +1450,7 @@ AST_T* runtime_visit_binop(runtime_T* runtime, AST_T* node)
             if (left->type == AST_INTEGER && right->type == AST_FLOAT)
             {
                 return_value = init_ast(AST_BOOLEAN);
-                
+
                 if (data_type_has_modifier(left->type_value, DATA_TYPE_MODIFIER_LONG))
                     return_value->boolean_value = left->long_int_value == right->float_value;
                 else
@@ -1691,14 +1614,14 @@ AST_T* runtime_visit_unop(runtime_T* runtime, AST_T* node)
             {
                 return_value = init_ast(AST_INTEGER);
                 return_value->int_value = -right->int_value;
-            }          
+            }
         } break;
         case TOKEN_PLUS: {
             if (right->type == AST_INTEGER)
             {
                 return_value = init_ast(AST_INTEGER);
                 return_value->int_value = +right->int_value;
-            }          
+            }
         } break;
         default: {printf("Error: [Line %d] `%s` is not a valid operator\n", node->line_n, node->unop_operator->value); exit(1);} break;
     }
@@ -1829,7 +1752,7 @@ AST_T* runtime_visit_iterate(runtime_T* runtime, AST_T* node)
             }
         }
     }
-    
+
     hermes_scope_T* fdef_body_scope = (hermes_scope_T*) fdef->function_definition_body->scope;
     char* iterable_varname = ((AST_T*)fdef->function_definition_arguments->items[0])->variable_name;
     int x = 0;
@@ -1852,7 +1775,7 @@ AST_T* runtime_visit_iterate(runtime_T* runtime, AST_T* node)
         index_var->variable_value = init_ast(AST_INTEGER);
         index_var->variable_value->int_value = x;
         index_var->variable_name = ((AST_T*)fdef->function_definition_arguments->items[1])->variable_name;
-        
+
         dynamic_list_append(fdef_body_scope->variable_definitions, index_var);
     }
 
@@ -1862,7 +1785,7 @@ AST_T* runtime_visit_iterate(runtime_T* runtime, AST_T* node)
         new_variable_def->variable_value = init_ast(AST_CHAR);
         new_variable_def->variable_value->char_value = ast_iterable->string_value[x];
         new_variable_def->variable_name = iterable_varname;
-        
+
         dynamic_list_append(fdef_body_scope->variable_definitions, new_variable_def);
 
         for (;x < strlen(ast_iterable->string_value); x++)
@@ -1881,7 +1804,7 @@ AST_T* runtime_visit_iterate(runtime_T* runtime, AST_T* node)
         AST_T* new_variable_def = init_ast(AST_VARIABLE_DEFINITION);
         new_variable_def->variable_value = runtime_visit(runtime, (AST_T*)ast_iterable->list_children->items[x]);
         new_variable_def->variable_name = iterable_varname;
-        
+
         dynamic_list_append(fdef_body_scope->variable_definitions, new_variable_def);
 
         for (;x < ast_iterable->list_children->size; x++)

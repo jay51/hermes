@@ -8,6 +8,32 @@
 #include <string.h>
 #include <time.h>
 
+void init_builtins(runtime_T* runtime)
+{
+  runtime_register_global_variable(runtime, "ver", "1.0.1");
+
+  // GLOBAL FUNCTIONS
+  runtime_register_global_function(runtime, "include", hermes_builtin_function_include);
+  runtime_register_global_function(runtime, "wad", hermes_builtin_function_wad);
+  runtime_register_global_function(runtime, "lad", hermes_builtin_function_lad);
+  runtime_register_global_function(runtime, "print", hermes_builtin_function_print);
+  runtime_register_global_function(runtime, "stdoutbuffer", hermes_builtin_function_stdoutbuffer);
+  runtime_register_global_function(runtime, "aprint", hermes_builtin_function_aprint);
+  runtime_register_global_function(runtime, "fopen", hermes_builtin_function_fopen);
+  runtime_register_global_function(runtime, "fclose", hermes_builtin_function_fclose);
+  runtime_register_global_function(runtime, "fputs", hermes_builtin_function_fputs);
+  runtime_register_global_function(runtime, "input", hermes_builtin_function_input);
+  runtime_register_global_function(runtime, "char_to_bin", hermes_builtin_function_char_to_bin);
+  runtime_register_global_function(runtime, "char_to_oct", hermes_builtin_function_char_to_oct);
+  runtime_register_global_function(runtime, "char_to_dec", hermes_builtin_function_char_to_dec);
+  runtime_register_global_function(runtime, "char_to_hex", hermes_builtin_function_char_to_hex);
+  runtime_register_global_function(runtime, "time", hermes_builtin_function_time);
+  runtime_register_global_function(runtime, "dload", hermes_builtin_function_dload);
+  runtime_register_global_function(runtime, "free", hermes_builtin_function_free);
+  runtime_register_global_function(runtime, "visit", hermes_builtin_function_visit);
+  runtime_register_global_function(runtime, "strrev", hermes_builtin_function_strrev);
+}
+
 /**
  * Simple print implementation.
  *
@@ -115,7 +141,7 @@ AST_T* hermes_builtin_function_wad(runtime_T* runtime, AST_T* self, dynamic_list
 
     AST_T* ast_compound = (AST_T*) args->items[0];
     AST_T* ast_string = (AST_T*) args->items[1];
-    
+
     char* filename = ast_string->string_value;
 
     FILE *outfile;
@@ -123,19 +149,19 @@ AST_T* hermes_builtin_function_wad(runtime_T* runtime, AST_T* self, dynamic_list
     const char* filename_template = "%s.dat";
     char* fname = calloc(strlen(filename) + strlen(filename_template) + 1, sizeof(char));
     sprintf(fname, filename_template, filename);
-      
+
     outfile = fopen(fname, "w");
 
-    if (outfile == NULL) 
-    { 
+    if (outfile == NULL)
+    {
         fprintf(stderr, "Could not open %s\n", fname);
-        free(fname); 
-        exit(1); 
-    } 
-  
-    // write struct to file 
+        free(fname);
+        exit(1);
+    }
+
+    // write struct to file
     int r = fwrite (&*ast_compound, sizeof(struct AST_STRUCT), 1, outfile);
-      
+
     if(r != 0)
     {
         // silence
@@ -144,11 +170,11 @@ AST_T* hermes_builtin_function_wad(runtime_T* runtime, AST_T* self, dynamic_list
     {
         printf("Could not write to %s\n", fname);
     }
-    
-    free(fname); 
-  
-    fclose(outfile); 
-  
+
+    free(fname);
+
+    fclose(outfile);
+
     return ast_compound;
 }
 
@@ -163,7 +189,7 @@ AST_T* hermes_builtin_function_wad(runtime_T* runtime, AST_T* self, dynamic_list
 AST_T* hermes_builtin_function_lad(runtime_T* runtime, AST_T* self, dynamic_list_T* args)
 {
     runtime_expect_args(args, 1, (int[]) {AST_STRING});
-    
+
     AST_T* ast_string = (AST_T*) args->items[0];
 
     char* filename = ast_string->string_value;
@@ -172,22 +198,22 @@ AST_T* hermes_builtin_function_lad(runtime_T* runtime, AST_T* self, dynamic_list
     char* fname = calloc(strlen(filename) + strlen(filename_template) + 1, sizeof(char));
     sprintf(fname, filename_template, filename);
 
-    FILE *infile; 
-    struct AST_STRUCT input; 
-      
-    infile = fopen(fname, "r"); 
-    if (infile == NULL) 
-    { 
-        fprintf(stderr, "Error reading %s\n", fname); 
+    FILE *infile;
+    struct AST_STRUCT input;
+
+    infile = fopen(fname, "r");
+    if (infile == NULL)
+    {
+        fprintf(stderr, "Error reading %s\n", fname);
         free(fname);
-        exit(1); 
-    } 
-      
-    // read file contents till end of file 
-    while(fread(&input, sizeof(struct AST_STRUCT), 1, infile)) 
+        exit(1);
+    }
+
+    // read file contents till end of file
+    while(fread(&input, sizeof(struct AST_STRUCT), 1, infile))
         printf("...\n");
-  
-    // close file 
+
+    // close file
     fclose (infile);
 
     AST_T* loaded = &input;
@@ -310,7 +336,7 @@ AST_T* hermes_builtin_function_input(runtime_T* runtime, AST_T* self, dynamic_li
     int size = 10;
 
     str = malloc(size * sizeof(char));
-    
+
     if (args->size > 0)
         printf("%s", ((AST_T*)args->items[0])->string_value);
 
@@ -375,7 +401,7 @@ AST_T* hermes_builtin_function_char_to_bin(runtime_T* runtime, AST_T* self, dyna
         char* str = calloc(2, sizeof(char));
         my_itoa(c%2, str);
         strcat(tmp_buffer, str);
-        c=c/2;      
+        c=c/2;
     }
 
     char* output = calloc(8, sizeof(char));
@@ -410,7 +436,7 @@ AST_T* hermes_builtin_function_char_to_oct(runtime_T* runtime, AST_T* self, dyna
         char* str = calloc(2, sizeof(char));
         my_itoa(c%8, str);
         strcat(tmp_buffer, str);
-        c=c/8; 
+        c=c/8;
     }
 
     char* output = calloc(4, sizeof(char));
@@ -489,7 +515,7 @@ AST_T* hermes_builtin_function_dload(runtime_T* runtime, AST_T* self, dynamic_li
     AST_T* visited_0 = runtime_visit(runtime, ast_arg_0);
 
     AST_T* fdef = INITIALIZED_NOOP;
-    
+
     for (int i = 1; i < args->size; i++)
     {
         AST_T* ast_arg = (AST_T*) args->items[i];
