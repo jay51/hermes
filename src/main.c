@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
 
         while (interactive)
         {
-            char* str = hermes_get_stdin(">: "); 
+            char* str = hermes_get_stdin(">: ");
 
             lexer = init_hermes_lexer(str);
 
@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
             node = hermes_parser_parse(parser, (void*) 0);
             runtime_visit(runtime, node);
         }
-        
+
         hermes_cleanup(lexer, parser, runtime, node);
 
         printf("---- * Interactive Shell Terminated. * ----\n");
@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
     node = hermes_parser_parse(parser, (void*) 0);
     runtime_visit(runtime, node);
 
-    hermes_cleanup(lexer, parser, runtime, node); 
+    hermes_cleanup(lexer, parser, runtime, node);
 
     return 0;
 }
